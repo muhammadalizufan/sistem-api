@@ -1,0 +1,57 @@
+<?php
+namespace App\Http\Controllers\SIAP;
+
+use App\Http\Controllers\Controller;
+use App\Repositories\SIAP\SIAPRepository;
+use App\Validators\ValidatorManager;
+use Illuminate\Http\Request;
+
+class DispositionController extends Controller
+{
+    private $SIAPRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->SIAPRepository = new SIAPRepository;
+    }
+
+    private static function AddNewLetterRule(): array
+    {
+        return [
+            'user_id' => 'required|integer|min:1',
+            'title' => 'required|string',
+            'from' => 'required|string',
+            'dateline' => 'required|string|in:OneDay,TwoDay,ThreeDay',
+            'file' => 'required|string',
+            'desc' => 'required|string',
+            'note' => 'required|string',
+            'forward_to' => 'required',
+            'forward_to.decision' => 'required|integer|min:1',
+            'forward_to.responder' => 'required|min:1|array',
+            'forward_to.responder.*' => 'required',
+        ];
+    }
+
+    public function AddNewLetterHandler(Request $r)
+    {
+        try {
+            ValidatorManager::ValidateJSON($r, self::AddNewLetterRule());
+            $AL = $this->SIAPRepository->AddNewLetter($r->all());
+            if (!$AL['status']) {
+                throw new \App\Exceptions\FailedAddLetterDispositionException($AL['message'], 400);
+            }
+        } catch (\ValidateException $e) {
+        } catch (\FailedAddLetterDispositionException $e) {
+        }
+        return response([
+            "api_version" => "1.0",
+            "message" => "success add new letter",
+        ], 201);
+    }
+
+}

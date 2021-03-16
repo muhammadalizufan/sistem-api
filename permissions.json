@@ -1,0 +1,94 @@
+[
+    {
+        "title": "Sistem Administrasi Perkantoran",
+        "value": "SIAP",
+        "child": [
+            {
+                "title": "Disposition",
+                "value": "SIAP.Disposition",
+                "child": [
+                    {
+                        "title": "View / Search",
+                        "value": "SIAP.Disposition.ViewSearch"
+                    },
+                    {
+                        "title": "Add",
+                        "value": "SIAP.Disposition.Add"
+                    },
+                    {
+                        "title": "Edit",
+                        "value": "SIAP.Disposition.Edit"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "title": "Setting",
+        "value": "Setting",
+        "child": [
+            {
+                "title": "Group Management",
+                "value": "Setting.GroupManagement",
+                "child": [
+                    {
+                        "title": "View / Search",
+                        "value": "Setting.GroupManagement.ViewSearch"
+                    },
+                    {
+                        "title": "Add",
+                        "value": "Setting.GroupManagement.Add"
+                    },
+                    {
+                        "title": "Edit",
+                        "value": "Setting.GroupManagement.Edit"
+                    }
+                ]
+            },
+            {
+                "title": "User Management",
+                "value": "Setting.UserManagement",
+                "child": [
+                    {
+                        "title": "User View / Search",
+                        "value": "Setting.UserManagement.Member.ViewSearch"
+                    },
+                    {
+                        "title": "Add User",
+                        "value": "Setting.UserManagement.Member.Add"
+                    },
+                    {
+                        "title": "Edit User",
+                        "value": "Setting.UserManagement.Member.Edit"
+                    },
+                    {
+                        "title": "Previllage User View / Search",
+                        "value": "Setting.UserManagement.Role.ViewSearch"
+                    },
+                    {
+                        "title": "Add Previllage User",
+                        "value": "Setting.UserManagement.Role.Add"
+                    },
+                    {
+                        "title": "Edit Previllage User",
+                        "value": "Setting.UserManagement.Role.Edit"
+                    }
+                ]
+            },
+            {
+                "title": "User Profile",
+                "value": "Setting.UserProfile",
+                "child": [
+                    {
+                        "title": "View",
+                        "value": "Setting.UserProfile.View"
+                    },
+                    {
+                        "title": "Edit",
+                        "value": "Setting.UserProfile.Edit"
+                    }
+                ]
+            }
+        ]
+    }
+]
