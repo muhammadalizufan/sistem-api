@@ -46,7 +46,7 @@ class RoleController extends Controller
                 throw new \App\Exceptions\FailedAddEditRoleException($AR['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddRoleException $e) {
+        } catch (\FailedAddEditRoleException $e) {
         }
         return response([
             "api_version" => "1.0",
@@ -64,7 +64,7 @@ class RoleController extends Controller
                 throw new \App\Exceptions\FailedAddEditRoleException($ER['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddRoleException $e) {
+        } catch (\FailedAddEditRoleException $e) {
         }
         return response([
             "api_version" => "1.0",

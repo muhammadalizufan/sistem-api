@@ -39,10 +39,10 @@ class UserController extends Controller
             ValidatorManager::ValidateJSON($r, self::AddUserRule());
             $AddUser = $this->AccountRepository->AddNewUser($r->all());
             if (!$AddUser['status']) {
-                throw new \App\Exceptions\FailedAddRoleException($AddUser['message'], 400);
+                throw new \App\Exceptions\FailedAddEditRoleException($AddUser['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddRoleException $e) {
+        } catch (\FailedAddEditRoleException $e) {
         }
         return response([
             "api_version" => "1.0",

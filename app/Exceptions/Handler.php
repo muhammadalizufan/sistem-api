@@ -29,7 +29,7 @@ class Handler extends ExceptionHandler
         IncorrectPasswordException::class,
         UnauthorizedException::class,
         FailedAddGroupException::class,
-        FailedAddRoleException::class,
+        FailedAddEditRoleException::class,
         FailedAddLetterDispositionException::class,
     ];
 
