@@ -18,6 +18,14 @@
                     {
                         "title": "Edit",
                         "value": "SIAP.Disposition.Edit"
+                    },
+                    {
+                        "title": "Edit Comment",
+                        "value": "SIAP.Disposition.Edit.Comment"
+                    },
+                    {
+                        "title": "Send",
+                        "value": "SIAP.Disposition.Send"
                     }
                 ]
             }

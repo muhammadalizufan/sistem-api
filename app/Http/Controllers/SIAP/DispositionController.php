@@ -32,8 +32,8 @@ class DispositionController extends Controller
             'note' => 'required|string',
             'forward_to' => 'required',
             'forward_to.decision' => 'required|integer|min:1',
-            'forward_to.responder' => 'required|min:1|array',
-            'forward_to.responder.*' => 'required',
+            'forward_to.responders' => 'required|min:1|array',
+            'forward_to.responders.*' => 'required',
         ];
     }
 
@@ -42,6 +42,41 @@ class DispositionController extends Controller
         try {
             ValidatorManager::ValidateJSON($r, self::AddNewLetterRule());
             $AL = $this->SIAPRepository->AddNewLetter($r->all());
+            if (!$AL['status']) {
+                throw new \App\Exceptions\FailedAddLetterDispositionException($AL['message'], 400);
+            }
+        } catch (\ValidateException $e) {
+        } catch (\FailedAddLetterDispositionException $e) {
+        }
+        return response([
+            "api_version" => "1.0",
+            "message" => "success add new letter",
+        ], 201);
+    }
+
+    private static function EditLetterRule(): array
+    {
+        return [
+            'user_id' => 'required|integer|min:1',
+            'title' => 'required|string',
+            'from' => 'required|string',
+            'dateline' => 'required|string|in:OneDay,TwoDay,ThreeDay',
+            'file' => 'required|string',
+            'desc' => 'required|string',
+            'note' => 'required|string',
+            'forward_to' => 'required',
+            'forward_to.decision' => 'required|integer|min:1',
+            'forward_to.responders' => 'required|min:1|array',
+            'forward_to.responders.*' => 'required',
+        ];
+    }
+
+    public function EditLetterHandler(Request $r, int $id = 0)
+    {
+        try {
+            ValidatorManager::ValidateJSON($r, self::EditLetterRule());
+            $r->request->add(['incoming_letter_id' => $id]);
+            $AL = $this->SIAPRepository->EditLetter($r->all());
             if (!$AL['status']) {
                 throw new \App\Exceptions\FailedAddLetterDispositionException($AL['message'], 400);
             }

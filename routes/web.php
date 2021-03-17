@@ -48,7 +48,7 @@ $router->group(["prefix" => "api"], function () use ($router) {
             $router->get("dispositions", "DispositionController@GetLetterHandler");
             $router->group(["namespace" => "SIAP", "prefix" => "disposition"], function () use ($router) {
                 $router->post("add", "DispositionController@AddNewLetterHandler");
-                $router->post("add", "DispositionController@AddNewLetterHandler");
+                $router->post("update/{id:[0-9]+}", "DispositionController@EditLetterHandler");
             });
         });
     });
