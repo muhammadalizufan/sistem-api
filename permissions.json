@@ -20,8 +20,12 @@
                         "value": "SIAP.Disposition.Edit"
                     },
                     {
-                        "title": "Edit Comment",
-                        "value": "SIAP.Disposition.Edit.Comment"
+                        "title": "Decision",
+                        "value": "SIAP.Disposition.Decision"
+                    },
+                    {
+                        "title": "Responders",
+                        "value": "SIAP.Disposition.Responders"
                     },
                     {
                         "title": "Send",
