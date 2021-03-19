@@ -28,9 +28,12 @@ class Handler extends ExceptionHandler
         UserNotFoundException::class,
         IncorrectPasswordException::class,
         UnauthorizedException::class,
-        FailedAddGroupException::class,
-        FailedAddEditRoleException::class,
-        FailedAddLetterDispositionException::class,
+        FailedAddEditGlobalException::class,
+        AddUserNotFoundException::class,
+        RoleNotFoundException::class,
+        GroupNotFoundException::class,
+        UserExistException::class,
+        UserNotFoundBadRequestException::class,
     ];
 
     /**
