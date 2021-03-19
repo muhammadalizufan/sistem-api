@@ -6,9 +6,20 @@ use App\Models\Account\Group;
 use App\Models\Account\GroupPermission;
 use App\Models\Account\Permission;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 trait GroupRepository
 {
+    public function GetGroup(int $id = 0): ?object
+    {
+        return Group::find($id);
+    }
+
+    public function GetGroupByName(Request $r): ?object
+    {
+        return Group::where('name', $r->name)->first();
+    }
+
     public function AddNewGroup(array $body = []): array
     {
         // Check Body
@@ -27,7 +38,7 @@ trait GroupRepository
             'name' => $body['name'],
             "is_active" => $body['status'],
         ]);
-        if (!is_object($G)) {
+        if (is_null($G)) {
             return [
                 "status" => false,
                 "message" => "failed add group",
@@ -50,9 +61,6 @@ trait GroupRepository
             }
         }
         if (count($permissions) <= 0) {
-            if (!is_object(GroupPermission::where('group_id', $G->id)->first())) {
-                Group::where('id', $G->id)->forceDelete();
-            }
             return [
                 "status" => false,
                 "message" => "group permission already given",
@@ -89,7 +97,7 @@ trait GroupRepository
 
         // Update Group
         $G = Group::find($body['group_id']);
-        if (!is_object($G)) {
+        if (is_null($G)) {
             return [
                 "status" => false,
                 "message" => "failed update group",

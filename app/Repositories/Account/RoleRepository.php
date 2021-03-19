@@ -2,14 +2,24 @@
 namespace App\Repositories\Account;
 
 use App\Libs\Helpers;
-use App\Models\Account\Group;
 use App\Models\Account\Permission;
 use App\Models\Account\Role;
 use App\Models\Account\RolePermission;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 trait RoleRepository
 {
+    public function GetRole(int $id = 0): ?object
+    {
+        return Role::find($id);
+    }
+
+    public function GetRoleByName(Request $r): ?object
+    {
+        return Role::where('name', $r->name)->first();
+    }
+
     public function AddNewRole(array $body = []): array
     {
         // Check Body
@@ -28,17 +38,7 @@ trait RoleRepository
             'name' => $body['name'],
             "is_active" => $body['status'],
         ]);
-        if (!is_object($R)) {
-            return [
-                "status" => false,
-                "message" => "failed add role",
-            ];
-        }
-
-        // Check Group
-        $G = Group::find($body['group_id']);
-        if (!is_object($G)) {
-            Role::where('id', $R->id)->forceDelete();
+        if (is_null($R)) {
             return [
                 "status" => false,
                 "message" => "failed add role",
@@ -49,7 +49,7 @@ trait RoleRepository
         $permissions = [];
         foreach ($body['permission'] as $p) {
             $Payload = [
-                "group_id" => $G->id,
+                "group_id" => $body['group_id'],
                 "role_id" => $R->id,
                 "permission_id" => Permission::where("name", trim($p))->first()->id ?? 0,
             ];
@@ -62,9 +62,6 @@ trait RoleRepository
             }
         }
         if (count($permissions) <= 0) {
-            if (!is_object(RolePermission::where('role_id', $R->id)->first())) {
-                Role::where('id', $R->id)->forceDelete();
-            }
             return [
                 "status" => false,
                 "message" => "role permission already given",
@@ -80,6 +77,7 @@ trait RoleRepository
                 "message" => "failed add role permission",
             ];
         }
+
         return [
             "status" => true,
         ];
@@ -98,29 +96,24 @@ trait RoleRepository
         // Convert Request Status
         $body = Helpers::ConvertStatusBody($body);
 
-        // Check Group
-        $G = Group::find($body['group_id']);
-        if (!is_object($G)) {
-            return [
-                "status" => false,
-                "message" => "failed update role, group id invalid",
-            ];
-        }
-
         // Update Role
-        $R = Role::find($body['role_id']);
-        if (!is_object($R)) {
+        $R = $this->GetOneRole($body['role_id']);
+        if (is_null($R)) {
             return [
                 "status" => false,
                 "message" => "failed update role, role id invalid",
             ];
         }
         $R->update([
+            "name" => $body['name'],
             "is_active" => $body['status'],
         ]);
 
         // Get Permission By Role ID
-        $RP = RolePermission::where(["role_id" => $R->id, "group_id" => $G->id])->with("Permission")->get()->map(function ($i) {
+        $RP = RolePermission::where([
+            "role_id" => $R->id,
+            "group_id" => $body['group_id'],
+        ])->with("Permission")->get()->map(function ($i) {
             return $i['permission']['name'];
         });
         if ($RP->count() <= 0) {
@@ -136,7 +129,7 @@ trait RoleRepository
         foreach ($EqualPermission as $ep) {
             $Payload = [
                 "role_id" => $R->id,
-                "group_id" => $G->id,
+                "group_id" => $body['group_id'],
                 "permission_id" => Permission::where("name", trim($ep))->first()->id,
             ];
             $RP = RolePermission::where($Payload);
@@ -157,7 +150,7 @@ trait RoleRepository
         foreach ($NotEqualPermission as $nep) {
             $Payload = [
                 "role_id" => $R->id,
-                "group_id" => $G->id,
+                "group_id" => $body['group_id'],
                 "permission_id" => Permission::where("name", trim($nep))->first()->id,
             ];
             $RP = RolePermission::where($Payload);
