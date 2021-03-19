@@ -57,4 +57,9 @@ class IncomingLetter extends Model
         'updated_at',
         'deleted_at',
     ];
+
+    public function User()
+    {
+        return $this->hasOne(User::class, "id", "user_id");
+    }
 }

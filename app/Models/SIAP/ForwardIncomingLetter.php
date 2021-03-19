@@ -50,4 +50,14 @@ class ForwardIncomingLetter extends Model
         'updated_at',
         'deleted_at',
     ];
+
+    public function IncomingLetter()
+    {
+        return $this->hasOne(IncomingLetter::class, "id", "incoming_letter_id");
+    }
+
+    public function User()
+    {
+        return $this->hasOne(User::class, "id", "user_id");
+    }
 }
