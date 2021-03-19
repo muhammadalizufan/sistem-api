@@ -18,18 +18,24 @@ trait DispositionRepository
             ];
         }
 
-        $CheckUserPermission = function (int $userId = 0) {
+        // Closure Func Check User Permission
+        $CheckUserPermission = function (int $userId = 0, bool $IsDecision = false) {
             return UserPermission::where('user_id', $userId)->with("Permission")
-                ->whereHas("Permission", function ($query) {
-                    $query->where("name", "SIAP.Disposition")->where("is_active", 1);
+                ->whereHas("Permission", function ($query) use ($IsDecision) {
+                    if ($IsDecision) {
+                        $query = $query->where("name", "SIAP.Disposition.Decision");
+                    } else {
+                        $query = $query->where("name", "SIAP.Disposition");
+                    }
+                    $query = $query->where("is_active", 1);
+                    return $query;
                 })->first();
         };
 
         $ForwardTo = [];
-
         // Check User
-        $CU = $CheckUserPermission((int) $body["user_id"]);
-        if (!is_object($CU)) {
+        $CUP = $CheckUserPermission((int) $body["user_id"]);
+        if (!is_object($CUP)) {
             return [
                 "status" => false,
                 "message" => "failed add new letter, user doesnt have permission",
@@ -43,8 +49,8 @@ trait DispositionRepository
         ]);
 
         // Check Decision
-        $CD = $CheckUserPermission((int) $body['forward_to']['decision']);
-        if (!is_object($CD)) {
+        $CDP = $CheckUserPermission((int) $body['forward_to']['decision'], true);
+        if (!is_object($CDP)) {
             return [
                 "status" => false,
                 "message" => "failed add new letter, user doesnt have permission",
@@ -59,12 +65,12 @@ trait DispositionRepository
 
         // Check Responder
         $count = 0;
-        foreach ($body['forward_to']['responders'] as $i) {
-            $CR = $CheckUserPermission((int) $i);
-            if (is_object($CR)) {
+        foreach ($body['forward_to']['responders'] as $id) {
+            $CRP = $CheckUserPermission((int) $id);
+            if (is_object($CRP)) {
                 array_push($ForwardTo, [
                     'incoming_letter_id' => 0,
-                    'user_id' => (int) $i,
+                    'user_id' => (int) $id,
                     'types' => 2, // Responder
                     'comment' => null,
                 ]);
@@ -116,7 +122,7 @@ trait DispositionRepository
             ];
         }
 
-        foreach ($ForwardTo as $key => $value) {
+        foreach (array_keys($ForwardTo) as $key) {
             $ForwardTo[$key]['incoming_letter_id'] = $IL->id;
         }
 
@@ -144,18 +150,22 @@ trait DispositionRepository
             ];
         }
 
-        $CheckUserPermission = function (int $userId = 0) {
+        $CheckUserPermission = function (int $userId = 0, bool $IsDecision = false) {
             return UserPermission::where('user_id', $userId)->with("Permission")
-                ->whereHas("Permission", function ($query) {
-                    $query->where("name", "SIAP.Disposition")->where("is_active", 1);
+                ->whereHas("Permission", function ($query) use ($IsDecision) {
+                    if ($IsDecision) {
+                        $query = $query->where("name", "SIAP.Disposition.Decision");
+                    } else {
+                        $query = $query->where("name", "SIAP.Disposition");
+                    }
+                    $query = $query->where("is_active", 1);
+                    return $query;
                 })->first();
         };
 
-        $UserIDS = [];
-
         // Check User
-        $CU = $CheckUserPermission((int) $body["user_id"]);
-        if (!is_object($CU)) {
+        $CUP = $CheckUserPermission((int) $body["user_id"]);
+        if (!is_object($CUP)) {
             return [
                 "status" => false,
                 "message" => "failed add new letter, user doesnt have permission",
@@ -163,8 +173,8 @@ trait DispositionRepository
         }
 
         // Check Decision
-        $CD = $CheckUserPermission((int) $body['forward_to']['decision']);
-        if (!is_object($CD)) {
+        $CDP = $CheckUserPermission((int) $body['forward_to']['decision'], true);
+        if (!is_object($CDP)) {
             return [
                 "status" => false,
                 "message" => "failed add new letter, user doesnt have permission",
@@ -174,8 +184,8 @@ trait DispositionRepository
         // Check Responder
         $count = 0;
         foreach ($body['forward_to']['responders'] as $i) {
-            $CR = $CheckUserPermission((int) $i);
-            if (!is_object($CR)) {
+            $CRP = $CheckUserPermission((int) $i);
+            if (!is_object($CRP)) {
                 $count++;
             }
         }
@@ -186,6 +196,7 @@ trait DispositionRepository
             ];
         }
 
+        $UserIDS = [];
         $UserIDS = array_merge(array_push($UserIDS, $body["user_id"], $body['forward_to']['decision']), $body['forward_to']['responders']);
 
         // Set Format Dateline
@@ -224,9 +235,10 @@ trait DispositionRepository
             ];
         }
 
-        $FIL = ForwardIncomingLetter::where('incoming_letter_id', $IL->id)->get()->map(function ($i) {
-            return $i['user_id'];
-        });
+        $FIL = ForwardIncomingLetter::where('incoming_letter_id', $IL->id)->get()
+            ->map(function ($i) {
+                return $i['user_id'];
+            });
 
         $UserIDNotEqual = $FIL->diff($UserIDS);
         foreach ($UserIDNotEqual as $id) {
