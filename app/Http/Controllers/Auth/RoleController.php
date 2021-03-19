@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Account\Role;
 use App\Repositories\Account\AccountRepository;
+use App\Services\Account\AccountManager;
 use App\Validators\ValidatorManager;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
     private $AccountRepository;
+    private $AccountManager;
 
     /**
      * Create a new controller instance.
@@ -19,11 +21,18 @@ class RoleController extends Controller
     public function __construct()
     {
         $this->AccountRepository = new AccountRepository;
+        $this->AccountManager = new AccountManager;
     }
 
-    public function GetRoleHandler(Request $r)
+    public function GetRoleHandler(Request $r, ?int $id = null)
     {
-        return Role::paginate(20);
+        $R = new Role;
+        if (is_null($id)) {
+            $R = $R::paginate(20);
+        } else {
+            $R = $R->where('id', $id)->first();
+        }
+        return $R;
     }
 
     private static function AddEditRoleRule(): array
@@ -41,12 +50,18 @@ class RoleController extends Controller
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditRoleRule());
+            $this->AccountManager->IsGroupExist(
+                $this->AccountRepository->GetGroup($r->group_id)
+            );
+            $this->AccountManager->CheckPermissionList($r->permission);
             $AR = $this->AccountRepository->AddNewRole($r->all());
             if (!$AR['status']) {
-                throw new \App\Exceptions\FailedAddEditRoleException($AR['message'], 400);
+                throw new \App\Exceptions\FailedAddEditGlobalException($AR['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddEditRoleException $e) {
+        } catch (\GroupNotFoundException $e) {
+        } catch (\PermissionNotFoundException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
         }
         return response([
             "api_version" => "1.0",
@@ -59,12 +74,22 @@ class RoleController extends Controller
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditRoleRule());
             $r->request->add(['role_id' => $id]);
+            $this->AccountManager->IsRoleExist(
+                $this->AccountRepository->GetRole($id)
+            );
+            $this->AccountManager->IsGroupExist(
+                $this->AccountRepository->GetGroup($r->group_id)
+            );
+            $this->AccountManager->CheckPermissionList($r->permission);
             $ER = $this->AccountRepository->EditRole($r->all());
             if (!$ER['status']) {
-                throw new \App\Exceptions\FailedAddEditRoleException($ER['message'], 400);
+                throw new \App\Exceptions\FailedAddEditGlobalException($ER['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddEditRoleException $e) {
+        } catch (\RoleNotFoundException $e) {
+        } catch (\GroupNotFoundException $e) {
+        } catch (\PermissionNotFoundException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
         }
         return response([
             "api_version" => "1.0",

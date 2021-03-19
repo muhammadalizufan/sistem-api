@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Account\Group;
 use App\Repositories\Account\AccountRepository;
+use App\Services\Account\AccountManager;
 use App\Validators\ValidatorManager;
 use Illuminate\Http\Request;
 
 class GroupController extends Controller
 {
     private $AccountRepository;
+    private $AccountManager;
 
     /**
      * Create a new controller instance.
@@ -19,16 +21,18 @@ class GroupController extends Controller
     public function __construct()
     {
         $this->AccountRepository = new AccountRepository;
+        $this->AccountManager = new AccountManager;
     }
 
-    public function GetHandler(Request $r)
+    public function GetGroupHandler(Request $r, ?int $id = null)
     {
-        return Group::paginate(20);
-    }
-
-    public function GetPermissionHandler(Request $r)
-    {
-        return Group::paginate(20);
+        $G = new Group;
+        if (is_null($id)) {
+            $G = $G::paginate(20);
+        } else {
+            $G = $G->where('id', $id)->first();
+        }
+        return $G;
     }
 
     private static function AddEditGroupRule(): array
@@ -41,16 +45,18 @@ class GroupController extends Controller
         ];
     }
 
-    public function AddHandler(Request $r)
+    public function AddGroupHandler(Request $r)
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditGroupRule());
+            $this->AccountManager->CheckPermissionList($r->permission);
             $AG = $this->AccountRepository->AddNewGroup($r->all());
             if (!$AG['status']) {
-                throw new \App\Exceptions\FailedAddEditGroupException($AG['message'], 400);
+                throw new \App\Exceptions\FailedAddEditGlobalException($AG['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddGroupException $e) {
+        } catch (\PermissionNotFoundException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
         }
         return response([
             "api_version" => "1.0",
@@ -58,17 +64,23 @@ class GroupController extends Controller
         ], 201);
     }
 
-    public function EditHandler(Request $r, int $id = 0)
+    public function EditGroupHandler(Request $r, int $id = 0)
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditGroupRule());
             $r->request->add(['group_id' => $id]);
+            $this->AccountManager->IsGroupExist(
+                $this->AccountRepository->GetGroup($id)
+            );
+            $this->AccountManager->CheckPermissionList($r->permission);
             $EG = $this->AccountRepository->EditGroup($r->all());
             if (!$EG['status']) {
-                throw new \App\Exceptions\FailedAddEditGroupException($EG['message'], 400);
+                throw new \App\Exceptions\FailedAddEditGlobalException($EG['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddGroupException $e) {
+        } catch (\GroupNotFoundException $e) {
+        } catch (\PermissionNotFoundException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
         }
         return response([
             "api_version" => "1.0",

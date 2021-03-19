@@ -60,7 +60,7 @@ class LoginController extends Controller
                     'name' => $i['role']['name'],
                 ];
             });
-            unset($U['access_token'], $U['password'], $U['pin']);
+            unset($U['access_token'], $U['password'], $U['pin'], $U['use_twofa']);
         }
 
         return response([
