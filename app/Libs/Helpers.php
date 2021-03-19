@@ -1,6 +1,7 @@
 <?php
 namespace App\Libs;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -75,5 +76,19 @@ class Helpers
                 break;
         }
         return $body;
+    }
+    /**
+     * Iteration Child Array Permission.
+     *
+     * @return static
+     */
+    public static function IterationPermissionChild(?Collection $Array, ?array $child)
+    {
+        foreach ($child as $key => $c) {
+            $Array->push($c['value']);
+            if (is_array($c['child'] ?? false)) {
+                self::IterationPermissionChild($Array, $c['child']);
+            }
+        }
     }
 }
