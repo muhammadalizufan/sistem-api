@@ -46,6 +46,4 @@ class AuthPrivateMiddleware
             throw new \Exception("Expired token");
         }
     }
-
-    // TODO : User Permission Validation
 }
