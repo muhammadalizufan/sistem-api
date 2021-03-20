@@ -91,4 +91,28 @@ class Helpers
             }
         }
     }
+    /**
+     * Map User Payload.
+     *
+     * @return static
+     */
+    public static function MapUserPayload(?array $U = null): ?array
+    {
+        if (count($U) > 0) {
+            if ($U['role']) {
+                $U['role'] = [
+                    'id' => $U['role']['role']['id'] ?? "",
+                    'name' => $U['role']['role']['name'] ?? "",
+                ];
+            }
+            if ($U['group']) {
+                $U['group'] = [
+                    'id' => $U['group']['group']['id'] ?? "",
+                    'name' => $U['group']['group']['name'] ?? "",
+                ];
+            }
+            unset($U['access_token'], $U['password'], $U['pin'], $U['use_twofa']);
+        }
+        return $U ?? null;
+    }
 }

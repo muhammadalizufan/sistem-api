@@ -27,6 +27,7 @@ $router->group(["prefix" => "api"], function () use ($router) {
 
             $router->group(["prefix" => "auth"], function () use ($router) {
                 $router->post("login", "LoginController@Handler");
+                $router->post("refresh-token", "LoginController@RefreshTokenHandler");
                 $router->post("change-password", ["middleware" => ["auth.private"], "uses" => "UserController@ChangeUserPasswordHandler"]);
             });
 
@@ -54,8 +55,8 @@ $router->group(["prefix" => "api"], function () use ($router) {
 
         $router->group(["namespace" => "SIAP", "prefix" => "siap", "middleware" => ["auth.private"]], function () use ($router) {
             $router->get("dispositions", "DispositionController@GetLetterHandler");
-
             $router->group(["prefix" => "disposition"], function () use ($router) {
+                $router->get("/{id:[0-9]+}", "DispositionController@GetLetterHandler");
                 $router->post("add", "DispositionController@AddNewLetterHandler");
                 $router->post("update/{id:[0-9]+}", "DispositionController@EditLetterHandler");
             });

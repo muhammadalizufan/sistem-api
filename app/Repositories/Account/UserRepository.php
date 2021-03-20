@@ -18,10 +18,10 @@ trait UserRepository
 
     public function GetUserByEmail(Request $r): ?object
     {
-        return User::where('email', $r->email)->with("Roles")->first();
+        return User::where('email', $r->email)->with("Group", "Role")->first();
     }
 
-    public function GetUserPermissionByUserID(int $id = 0)
+    public function GetUserPermissionByUserID(int $id = 0): ?object
     {
         return UserPermission::where('user_id', $id)
             ->with("Permission")->get()
@@ -33,13 +33,18 @@ trait UserRepository
             });
     }
 
-    public function CreateUserRefreshToken(Request $r, $User, $RefreshToken): object
+    public function CreateUserRefreshToken(Request $r, $User, $RefreshToken): ?object
     {
         return UserRefreshToken::updateOrCreate([
             "user_id" => $User->id,
             "user_agent" => $r->server("HTTP_USER_AGENT"),
             "refresh_token" => $RefreshToken,
         ]);
+    }
+
+    public function GetUserRefreshToken(?string $RefreshToken = null): ?object
+    {
+        return UserRefreshToken::where('refresh_token', $RefreshToken)->with('User')->first();
     }
 
     public function AddNewUser(array $body = []): array

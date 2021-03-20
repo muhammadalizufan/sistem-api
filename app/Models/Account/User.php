@@ -56,11 +56,20 @@ class User extends Model
         'deleted_at',
     ];
 
-    public function Roles()
+    public function Group()
     {
-        return $this->hasMany(UserPermission::class, "user_id", "id")
+        return $this->hasOne(UserPermission::class, "user_id", "id")
+            ->select("user_id", "group_id")
+            ->distinct("group_id")
+            ->with("Group");
+    }
+
+    public function Role()
+    {
+        return $this->hasOne(UserPermission::class, "user_id", "id")
             ->select("user_id", "role_id")
             ->distinct("role_id")
             ->with("Role");
     }
+
 }

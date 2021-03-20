@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Libs\Helpers;
 use App\Repositories\Account\AccountRepository;
 use App\Services\Auth\LoginManager;
 use App\Validators\ValidatorManager;
@@ -52,16 +53,40 @@ class LoginController extends Controller
         $Token = $this->LoginManager->GenerateJWT($U);
         $RefToken = $this->LoginManager->GenerateRefreshToken($r, $U);
 
-        $U = $U->toArray();
-        if (count($U) > 0) {
-            $U["roles"] = collect($U["roles"])->map(function ($i) {
-                return [
-                    'id' => $i['role']['id'],
-                    'name' => $i['role']['name'],
-                ];
-            });
-            unset($U['access_token'], $U['password'], $U['pin'], $U['use_twofa']);
+        $U = Helpers::MapUserPayload($U->toArray());
+
+        return response([
+            'api_version' => "1.0",
+            'data' => [
+                'token' => $Token,
+                'refresh_token' => $RefToken,
+                'user' => $U,
+                'permissions' => $Permissions,
+            ],
+        ]);
+    }
+
+    public function RefreshTokenHandler(Request $r)
+    {
+        try {
+            ValidatorManager::ValidateJSON($r, [
+                'refresh_token' => 'required',
+            ]);
+            $RTPayload = $this->AccountRepository->GetUserRefreshToken($r->refresh_token);
+            $this->LoginManager->IsRegistered($RTPayload->user ?? null);
+            $r->request->add(['email' => $RTPayload->user->email]);
+            $U = $this->AccountRepository->GetUserByEmail($r);
+            $Permissions = $this->AccountRepository->GetUserPermissionByUserID($U->id);
+        } catch (\ValidateException $e) {
+        } catch (\UserNotFoundException $e) {
         }
+        if (is_object($U)) {
+            unset($U->pin, $U->password);
+        }
+        $Token = $this->LoginManager->GenerateJWT($U);
+        $RefToken = $this->LoginManager->GenerateRefreshToken($r, $U);
+
+        $U = Helpers::MapUserPayload($U->toArray());
 
         return response([
             'api_version' => "1.0",
