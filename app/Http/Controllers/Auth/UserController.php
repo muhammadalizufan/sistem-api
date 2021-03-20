@@ -105,7 +105,7 @@ class UserController extends Controller
                 throw new \App\Exceptions\FailedAddEditGlobalException($AU['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\UserNotFoundBadRequestException $e) {
+        } catch (\UserNotFoundException $e) {
         } catch (\UserExistException $e) {
         } catch (\GroupNotFoundException $e) {
         } catch (\RoleNotFoundException $e) {
@@ -140,7 +140,7 @@ class UserController extends Controller
                 throw new \App\Exceptions\FailedAddEditGlobalException($AU['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\UserNotFoundBadRequestException $e) {
+        } catch (\UserNotFoundException $e) {
         } catch (\IncorrectPasswordException $e) {
         } catch (\FailedAddEditGlobalException $e) {
         }

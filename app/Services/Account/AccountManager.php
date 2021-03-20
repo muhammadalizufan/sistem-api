@@ -32,7 +32,7 @@ class AccountManager
     public function IsUserNotExist(?object $User = null)
     {
         if (is_null($User)) {
-            throw new \App\Exceptions\UserNotFoundBadRequestException();
+            throw new \App\Exceptions\UserNotFoundException();
         }
     }
 

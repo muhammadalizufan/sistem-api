@@ -43,7 +43,7 @@ class LoginController extends Controller
             $this->LoginManager->PasswordIsMatch($r->password, $U->password);
             $Permissions = $this->AccountRepository->GetUserPermissionByUserID($U->id);
         } catch (\ValidateException $e) {
-        } catch (\UserNotFoundException $e) {
+        } catch (\UserNotRegisteredException $e) {
         } catch (\IncorrectPasswordException $e) {
         }
 
@@ -76,10 +76,12 @@ class LoginController extends Controller
             $this->LoginManager->IsRegistered($RTPayload->user ?? null);
             $r->request->add(['email' => $RTPayload->user->email]);
             $U = $this->AccountRepository->GetUserByEmail($r);
+            $this->LoginManager->IsRegistered($U);
             $Permissions = $this->AccountRepository->GetUserPermissionByUserID($U->id);
         } catch (\ValidateException $e) {
-        } catch (\UserNotFoundException $e) {
+        } catch (\UserNotRegisteredException $e) {
         }
+
         if (is_object($U)) {
             unset($U->pin, $U->password);
         }

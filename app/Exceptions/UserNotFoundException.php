@@ -10,17 +10,17 @@ class UserNotFoundException extends Exception
         return response([
             'api_version' => '1.0',
             "error" => [
-                'code'=> 401,
-                "message" => "Unauthorized",
-                "reason" => "UnauthorizedException",
+                'code' => 404,
+                "message" => "NotFound",
+                "reason" => "NotFoundException",
                 "errors" => [
                     [
                         "domain" => null,
                         "reason" => "UserNotFoundException",
-                        "message" => "User Not Found"
-                    ]
-                ]
-            ]
-        ], 401);
+                        "message" => "User Not Found",
+                    ],
+                ],
+            ],
+        ], 404);
     }
 }

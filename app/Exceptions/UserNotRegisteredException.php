@@ -3,24 +3,24 @@ namespace App\Exceptions;
 
 use Exception;
 
-class UserNotFoundBadRequestException extends Exception
+class UserNotRegisteredException extends Exception
 {
     public function render()
     {
         return response([
             'api_version' => '1.0',
             "error" => [
-                'code' => 400,
-                "message" => "BadRequest",
-                "reason" => "BadRequestException",
+                'code' => 401,
+                "message" => "Unauthorized",
+                "reason" => "UnauthorizedException",
                 "errors" => [
                     [
                         "domain" => null,
-                        "reason" => "UserNotFoundBadRequestException",
-                        "message" => "User Not Found",
+                        "reason" => "UserNotRegisteredException",
+                        "message" => "User Not Registered",
                     ],
                 ],
             ],
-        ], 400);
+        ], 401);
     }
 }

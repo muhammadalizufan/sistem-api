@@ -26,14 +26,13 @@ class Handler extends ExceptionHandler
         // Custome Exception ...
         ValidateException::class,
         UserNotFoundException::class,
+        UserNotRegisteredException::class,
         IncorrectPasswordException::class,
         UnauthorizedException::class,
         FailedAddEditGlobalException::class,
-        AddUserNotFoundException::class,
         RoleNotFoundException::class,
         GroupNotFoundException::class,
         UserExistException::class,
-        UserNotFoundBadRequestException::class,
     ];
 
     /**
