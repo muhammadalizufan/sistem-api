@@ -21,15 +21,20 @@ class DispositionController extends Controller
         $this->SIAPRepository = new SIAPRepository;
     }
 
-    public function GetLetterHandler(Request $r)
+    public function GetLetterHandler(Request $r, ?int $id = null)
     {
-        return IncomingLetter::with("User")->paginate(20);
+        $IL = new IncomingLetter;
+        if (is_null($id)) {
+            $IL = $IL::with("User")->paginate(20);
+        } else {
+            $IL = $IL::with("User")->where('id', $id)->first();
+        }
+        return $IL;
     }
 
-    private static function AddNewLetterRule(): array
+    private static function AddEditNewLetterRule(): array
     {
         return [
-            'user_id' => 'required|integer|min:1',
             'title' => 'required|string',
             'from' => 'required|string',
             'dateline' => 'required|string|in:OneDay,TwoDay,ThreeDay',
@@ -45,7 +50,8 @@ class DispositionController extends Controller
     public function AddNewLetterHandler(Request $r)
     {
         try {
-            ValidatorManager::ValidateJSON($r, self::AddNewLetterRule());
+            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule());
+            $r->request->add(['user_id' => $r->UserData->id]);
             $AL = $this->SIAPRepository->AddNewLetter($r->all());
             if (!$AL['status']) {
                 throw new \App\Exceptions\FailedAddEditGlobalException($AL['message'], 400);
@@ -59,27 +65,11 @@ class DispositionController extends Controller
         ], 201);
     }
 
-    private static function EditLetterRule(): array
-    {
-        return [
-            'user_id' => 'required|integer|min:1',
-            'title' => 'required|string',
-            'from' => 'required|string',
-            'dateline' => 'required|string|in:OneDay,TwoDay,ThreeDay',
-            'file' => 'required|string',
-            'desc' => 'required|string',
-            'note' => 'required|string',
-            'forward_to' => 'required',
-            'forward_to.responders' => 'required|min:1|array',
-            'forward_to.responders.*' => 'required',
-        ];
-    }
-
     public function EditLetterHandler(Request $r, int $id = 0)
     {
         try {
-            ValidatorManager::ValidateJSON($r, self::EditLetterRule());
-            $r->request->add(['incoming_letter_id' => $id]);
+            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule());
+            $r->request->add(['incoming_letter_id' => $id, 'user_id' => $r->UserData->id]);
             $AL = $this->SIAPRepository->EditLetter($r->all());
             if (!$AL['status']) {
                 throw new \App\Exceptions\FailedAddEditGlobalException($AL['message'], 400);
