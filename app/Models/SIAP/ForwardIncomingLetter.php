@@ -42,6 +42,15 @@ class ForwardIncomingLetter extends Model
     ];
 
     /**
+     * Custome appends attributes.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'reciver_type',
+    ];
+
+    /**
      * The attributes excluded from the model's JSON form.
      *
      * @var array
@@ -52,6 +61,24 @@ class ForwardIncomingLetter extends Model
         'deleted_at',
     ];
 
+    public function getReciverTypeAttribute()
+    {
+        switch ($this->attributes['types']) {
+            case 0:
+                return "Creator";
+                break;
+            case 1:
+                return "Decision";
+                break;
+            case 2:
+                return "Responder";
+                break;
+            default:
+                return null;
+                break;
+        }
+    }
+
     public function IncomingLetter()
     {
         return $this->hasOne(IncomingLetter::class, "id", "incoming_letter_id");
@@ -60,5 +87,10 @@ class ForwardIncomingLetter extends Model
     public function User()
     {
         return $this->hasOne(User::class, "id", "user_id")->select('id', 'name');
+    }
+
+    public function Tags()
+    {
+        return $this->hasMany(TagIncomingLetter::class, "incoming_letter_id", "incoming_letter_id")->with("Tag");
     }
 }

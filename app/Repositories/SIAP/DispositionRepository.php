@@ -1,6 +1,8 @@
 <?php
 namespace App\Repositories\SIAP;
 
+use App\Libs\Helpers;
+use App\Models\Account\Permission;
 use App\Models\Account\UserPermission;
 use App\Models\SIAP\ForwardIncomingLetter;
 use App\Models\SIAP\IncomingLetter;
@@ -8,7 +10,7 @@ use Carbon\Carbon;
 
 trait DispositionRepository
 {
-    //
+    // check user has add permission on desposition.add
     public function AddNewLetter(array $body = []): array
     {
         // Check Body
@@ -18,98 +20,43 @@ trait DispositionRepository
                 "message" => "failed add new letter, body is empty",
             ];
         }
-
-        // Closure Func Check User Permission
-        $CheckUserPermission = function (int $userId = 0, bool $IsDecision = false) {
-            $UP = new UserPermission;
-            if (!$IsDecision) {
-                $UP = $UP->where('user_id', $userId);
-            }
-            $UP = $UP->with("Permission")->whereHas("Permission", function ($query) use ($IsDecision) {
-                if ($IsDecision) {
-                    $query = $query->where("name", "SIAP.Disposition.Decision");
-                } else {
-                    $query = $query->where("name", "SIAP.Disposition");
-                }
-                $query = $query->where("is_active", 1);
-                return $query;
-            });
-            return $UP->first();
-        };
-
-        $ForwardTo = [];
-        // Check User
-        $CUP = $CheckUserPermission((int) $body["user_id"]);
-        if (!is_object($CUP)) {
+        $ForwardTo = collect([]);
+        $GetUserID = (function () use ($body): ?array{
+            $Responder = Permission::where(["name" => "SIAP.Disposition.Responders", "is_active" => 1])->first()->id ?? 0;
+            $Decision = Permission::where(["name" => "SIAP.Disposition.Decision", "is_active" => 1])->first()->id ?? 0;
+            return [
+                "Responder" => UserPermission::where([
+                    "role_id" => $body['forward_to']['responders'],
+                    "permission_id" => $Responder,
+                ])->get()->map(function ($i) {
+                    return $i['user_id'];
+                })->toArray(),
+                "Decision" => UserPermission::where([
+                    "permission_id" => $Decision,
+                ])->first()->id ?? 0,
+            ];
+        })();
+        $Responders = $GetUserID['Responder'];
+        $Decision = $GetUserID['Decision'];
+        if ($Responders <= 0 || $Decision == 0) {
             return [
                 "status" => false,
-                "message" => "failed add new letter, user created doesnt have permission",
+                "message" => "failed add new letter, user with role is empty",
             ];
         }
-        array_push($ForwardTo, [
+        $ForwardTo->push([
             'incoming_letter_id' => 0,
             'user_id' => (int) $body["user_id"],
             'types' => 0, // Creator
             'comment' => null,
         ]);
-
-        // Check Decision
-        $CDP = $CheckUserPermission(0, true);
-        if (!is_object($CDP)) {
-            return [
-                "status" => false,
-                "message" => "failed add new letter, user decision doesnt have permission",
-            ];
-        }
-        array_push($ForwardTo, [
-            'incoming_letter_id' => 0,
-            'user_id' => (int) $CDP->user_id,
-            'types' => 1, // Decision
-            'comment' => null,
-        ]);
-
-        // Check Responder
-        $count = 0;
-        foreach ($body['forward_to']['responders'] as $id) {
-            $CRP = $CheckUserPermission((int) $id);
-            if (is_object($CRP)) {
-                array_push($ForwardTo, [
-                    'incoming_letter_id' => 0,
-                    'user_id' => (int) $id,
-                    'types' => 2, // Responder
-                    'comment' => null,
-                ]);
-            } else {
-                $count++;
-            }
-        }
-        if ($count > 0) {
-            return [
-                "status" => false,
-                "message" => "failed add new letter, user responder doesnt have permission",
-            ];
-        }
-
         // Set Format Dateline
-        switch ($body["dateline"]) {
-            case 'OneDay':
-                $body["dateline"] = Carbon::now();
-                break;
-            case 'TwoDay':
-                $body["dateline"] = Carbon::now()->addDays(2);
-                break;
-            case 'ThreeDay':
-                $body["dateline"] = Carbon::now()->addDays(3);
-                break;
-            default:
-                $body["dateline"] = Carbon::now()->addDays(3);
-                break;
-        }
-
+        $body = Helpers::ConvertDatelineBodyToDate($body);
         // Insert Incoming Letter
         $IL = IncomingLetter::create([
             'user_id' => $body["user_id"],
-            'code' => time(),
+            'cat_id' => $body["cat_id"],
+            'code' => "SIAP/SM/SD/" . time(),
             'title' => $body["title"],
             'from' => $body["from"],
             'date' => Carbon::now(),
@@ -127,8 +74,25 @@ trait DispositionRepository
             ];
         }
 
+        $ForwardTo->push([
+            'incoming_letter_id' => 0,
+            'user_id' => (int) $Decision,
+            'types' => 1, // Decision
+            'comment' => null,
+        ]);
+        foreach ($Responders as $key) {
+            $ForwardTo->push([
+                'incoming_letter_id' => 0,
+                'user_id' => (int) $key,
+                'types' => 2, // Responder
+                'comment' => null,
+            ]);
+        }
+        $ForwardTo = $ForwardTo->toArray();
         foreach (array_keys($ForwardTo) as $key) {
             $ForwardTo[$key]['incoming_letter_id'] = $IL->id;
+            $ForwardTo[$key]['created_at'] = Carbon::now();
+            $ForwardTo[$key]['updated_at'] = Carbon::now();
         }
 
         $FIL = ForwardIncomingLetter::insert($ForwardTo);
@@ -212,20 +176,7 @@ trait DispositionRepository
         $UserIDS = array_merge(array_push($UserIDS, $body["user_id"], $CDP->user_id), $body['forward_to']['responders']);
 
         // Set Format Dateline
-        switch ($body["dateline"]) {
-            case 'OneDay':
-                $body["dateline"] = Carbon::now();
-                break;
-            case 'TwoDay':
-                $body["dateline"] = Carbon::now()->addDays(2);
-                break;
-            case 'ThreeDay':
-                $body["dateline"] = Carbon::now()->addDays(3);
-                break;
-            default:
-                $body["dateline"] = Carbon::now()->addDays(3);
-                break;
-        }
+        $body = Helpers::ConvertDatelineBodyToDate($body);
 
         // Insert Incoming Letter
         $IL = IncomingLetter::find($body['incoming_letter_id']);

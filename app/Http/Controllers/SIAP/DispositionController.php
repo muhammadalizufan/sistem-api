@@ -26,9 +26,9 @@ class DispositionController extends Controller
     {
         $IL = new ForwardIncomingLetter;
         if (is_null($id)) {
-            $IL = $IL::with("IncomingLetter", "User")->paginate(20);
+            $IL = $IL::with("IncomingLetter", "User", "Tags")->paginate(20);
         } else {
-            $IL = $IL::with("IncomingLetter", "User")->where('id', $id)->first();
+            $IL = $IL::with("IncomingLetter", "User", "Tags")->where('id', $id)->first();
         }
         return $IL;
     }
@@ -53,6 +53,7 @@ class DispositionController extends Controller
             'file' => 'required|string',
             'desc' => 'required|string',
             'note' => 'required|string',
+            'cat_id' => 'required|integer|min:1',
             'tag' => 'array|nullable',
             'forward_to' => 'required',
             'forward_to.responders' => 'required|min:1|array',

@@ -36,6 +36,7 @@ class IncomingLetter extends Model
      */
     protected $fillable = [
         'user_id',
+        'cat_id',
         'code',
         'title',
         'from',
@@ -49,6 +50,15 @@ class IncomingLetter extends Model
     ];
 
     /**
+     * Custome appends attributes.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'status_letter',
+    ];
+
+    /**
      * The attributes excluded from the model's JSON form.
      *
      * @var array
@@ -58,6 +68,24 @@ class IncomingLetter extends Model
         'updated_at',
         'deleted_at',
     ];
+
+    public function getStatusLetterAttribute()
+    {
+        switch ($this->attributes['status']) {
+            case 0:
+                return "Process";
+                break;
+            case 1:
+                return "Success";
+                break;
+            case 2:
+                return "Failed";
+                break;
+            default:
+                return null;
+                break;
+        }
+    }
 
     public function User()
     {
