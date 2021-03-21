@@ -33,7 +33,7 @@ class AuthPrivateMiddleware
         return $next($request);
     }
 
-    public function TokenIsEmpty(?object $Token = null)
+    public function TokenIsEmpty(?string $Token = '')
     {
         if (is_null($Token) || empty($Token)) {
             throw new \Exception("Header can't empty", 422);

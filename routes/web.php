@@ -19,6 +19,9 @@ $router->get('/', function () use ($router) {
 
 $router->group(["prefix" => "api"], function () use ($router) {
     $router->group(["prefix" => "v1"], function () use ($router) {
+        $router->group(['namespace' => 'File', "prefix" => "file"], function () use ($router) {
+            $router->post('upload', 'UploadController@Handler');
+        });
 
         $router->group(["namespace" => "Auth"], function () use ($router) {
             $router->get("permissions", "PermissionController@GetAllPermissionRawHandler");
@@ -31,30 +34,32 @@ $router->group(["prefix" => "api"], function () use ($router) {
                 $router->post("change-password", ["middleware" => ["auth.private"], "uses" => "UserController@ChangeUserPasswordHandler"]);
             });
 
-            $router->get("groups", ["middleware" => ["auth.private"], "uses" => "GroupController@GetGroupHandler"]);
-            $router->group(["prefix" => "group", "middleware" => ["auth.private"]], function () use ($router) {
+            $router->get("groups", ["middleware" => [], "uses" => "GroupController@GetGroupHandler"]); //"auth.private"
+            $router->group(["prefix" => "group", "middleware" => []], function () use ($router) { //"auth.private"
                 $router->get("/{id:[0-9]+}", "GroupController@GetGroupHandler");
                 $router->post("add", "GroupController@AddGroupHandler");
                 $router->post("update/{id:[0-9]+}", "GroupController@EditGroupHandler");
             });
 
-            $router->get("roles", ["middleware" => ["auth.private"], "uses" => "RoleController@GetRoleHandler"]);
-            $router->group(["prefix" => "role", "middleware" => ["auth.private"]], function () use ($router) {
+            $router->get("roles", ["middleware" => [], "uses" => "RoleController@GetRoleHandler"]); //"auth.private"
+            $router->group(["prefix" => "role", "middleware" => []], function () use ($router) { //"auth.private"
                 $router->get("/{id:[0-9]+}", "RoleController@GetRoleHandler");
                 $router->post("add", "RoleController@AddRoleHandler");
                 $router->post("update/{id:[0-9]+}", "RoleController@EditRoleHandler");
             });
 
-            $router->get("users", ["middleware" => ["auth.private"], "uses" => "UserController@GetUserHandler"]);
-            $router->group(["prefix" => "user", "middleware" => ["auth.private"]], function () use ($router) {
+            $router->get("users", ["middleware" => [], "uses" => "UserController@GetUserHandler"]); //"auth.private"
+            $router->group(["prefix" => "user", "middleware" => []], function () use ($router) { //"auth.private"
                 $router->get("/{id:[0-9]+}", "UserController@GetUserHandler");
                 $router->post("add", "UserController@AddUserHandler");
                 $router->post("update/{id:[0-9]+}", "UserController@EditUserHandler");
             });
         });
 
-        $router->group(["namespace" => "SIAP", "prefix" => "siap", "middleware" => ["auth.private"]], function () use ($router) {
+        $router->group(["namespace" => "SIAP", "prefix" => "siap", "middleware" => []], function () use ($router) { //"auth.private"
             $router->get("dispositions", "DispositionController@GetLetterHandler");
+            $router->get("inboxs", "DispositionController@GetInboxHandler");
+            $router->get("inbox/{id:[0-9]+}", "DispositionController@GetInboxHandler");
             $router->group(["prefix" => "disposition"], function () use ($router) {
                 $router->get("/{id:[0-9]+}", "DispositionController@GetLetterHandler");
                 $router->post("add", "DispositionController@AddNewLetterHandler");

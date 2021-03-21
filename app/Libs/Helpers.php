@@ -115,4 +115,13 @@ class Helpers
         }
         return $U ?? null;
     }
+    /**
+     * Remove Extension From String.
+     *
+     * @return static
+     */
+    public static function StrWithoutExtension(string $string = "")
+    {
+        return preg_replace('/\\.[^.\\s]{3,4}$/', '', $string);
+    }
 }
