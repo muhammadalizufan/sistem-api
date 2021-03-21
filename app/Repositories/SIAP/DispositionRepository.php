@@ -8,6 +8,7 @@ use Carbon\Carbon;
 
 trait DispositionRepository
 {
+    //
     public function AddNewLetter(array $body = []): array
     {
         // Check Body
