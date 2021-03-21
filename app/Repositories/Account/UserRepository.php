@@ -17,9 +17,13 @@ trait UserRepository
         return User::find($id);
     }
 
-    public function GetUserByEmail(Request $r): ?object
+    public function GetUserByEmail(Request $r, bool $IsNeedCompare = false): ?object
     {
-        return User::where('email', $r->email)->with("Group", "Role")->first();
+        $U = User::where('email', $r->email)->with("Group", "Role")->first();
+        if ($IsNeedCompare) {
+            return ($U->name ?? "") == $r->name ? null : $U;
+        }
+        return $U;
     }
 
     public function GetUserPermissionByUserID(int $id = 0): ?object

@@ -91,7 +91,7 @@ class UserController extends Controller
                 $this->AccountRepository->GetUser($id)
             );
             $this->AccountManager->ErrorWhenUserExist(
-                $this->AccountRepository->GetUserByEmail($r)
+                $this->AccountRepository->GetUserByEmail($r, true)
             );
             $this->AccountManager->ErrorWhenGroupNotFound(
                 $this->AccountRepository->GetGroup($r->group_id)
