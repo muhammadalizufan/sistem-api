@@ -55,13 +55,13 @@ class UserController extends Controller
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditUserRule());
-            $this->AccountManager->IsUserExist(
+            $this->AccountManager->ErrorWhenUserExist(
                 $this->AccountRepository->GetUserByEmail($r)
             );
-            $this->AccountManager->IsGroupExist(
+            $this->AccountManager->ErrorWhenGroupNotFound(
                 $this->AccountRepository->GetGroup($r->group_id)
             );
-            $this->AccountManager->IsRoleExist(
+            $this->AccountManager->ErrorWhenRoleNotFound(
                 $this->AccountRepository->GetRole($r->role_id)
             );
             $this->AccountManager->CheckPermissionList($r->permission);
@@ -87,16 +87,16 @@ class UserController extends Controller
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditUserRule());
             $r->request->add(['user_id' => $id]);
-            $this->AccountManager->IsUserNotExist(
+            $this->AccountManager->ErrorWhenUserNotFound(
                 $this->AccountRepository->GetUser($id)
             );
-            $this->AccountManager->IsUserExist(
+            $this->AccountManager->ErrorWhenUserExist(
                 $this->AccountRepository->GetUserByEmail($r)
             );
-            $this->AccountManager->IsGroupExist(
+            $this->AccountManager->ErrorWhenGroupNotFound(
                 $this->AccountRepository->GetGroup($r->group_id)
             );
-            $this->AccountManager->IsRoleExist(
+            $this->AccountManager->ErrorWhenRoleNotFound(
                 $this->AccountRepository->GetRole($r->role_id)
             );
             $this->AccountManager->CheckPermissionList($r->permission);
@@ -105,8 +105,8 @@ class UserController extends Controller
                 throw new \App\Exceptions\FailedAddEditGlobalException($AU['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\UserNotFoundException $e) {
         } catch (\UserExistException $e) {
+        } catch (\UserNotFoundException $e) {
         } catch (\GroupNotFoundException $e) {
         } catch (\RoleNotFoundException $e) {
         } catch (\PermissionNotFoundException $e) {
@@ -134,7 +134,7 @@ class UserController extends Controller
         try {
             ValidatorManager::ValidateJSON($r, self::ChangeUserPasswordRule());
             $U = $this->AccountRepository->GetUserByEmail($r);
-            $this->AccountManager->IsUserNotExist($U);
+            $this->AccountManager->ErrorWhenUserNotFound($U);
             $this->LoginManager->PasswordIsMatch($r->password, $U->password);
             $AU = $this->AccountRepository->ChangeUserPassword($r->all());
             if (!$AU['status']) {

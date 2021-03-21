@@ -72,7 +72,7 @@ class LoginController extends Controller
             ValidatorManager::ValidateJSON($r, [
                 'refresh_token' => 'required',
             ]);
-            $RTPayload = $this->AccountRepository->GetUserRefreshToken($r->refresh_token);
+            $RTPayload = $this->AccountRepository->GetRefreshToken($r->refresh_token);
             $this->LoginManager->IsRegistered($RTPayload->user ?? null);
             $r->request->add(['email' => $RTPayload->user->email]);
             $U = $this->AccountRepository->GetUserByEmail($r);

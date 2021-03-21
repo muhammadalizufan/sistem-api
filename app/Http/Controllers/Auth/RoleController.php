@@ -50,9 +50,13 @@ class RoleController extends Controller
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditRoleRule());
-            $this->AccountManager->IsGroupExist(
+            $this->AccountManager->ErrorWhenRoleExist(
+                $this->AccountRepository->GetRoleByName($r)
+            );
+            $this->AccountManager->ErrorWhenRoleNotFound(
                 $this->AccountRepository->GetGroup($r->group_id)
             );
+            // Check Permission List on table Permission
             $this->AccountManager->CheckPermissionList($r->permission);
             $AR = $this->AccountRepository->AddNewRole($r->all());
             if (!$AR['status']) {
@@ -60,6 +64,7 @@ class RoleController extends Controller
             }
         } catch (\ValidateException $e) {
         } catch (\GroupNotFoundException $e) {
+        } catch (\RoleExistException $e) {
         } catch (\PermissionNotFoundException $e) {
         } catch (\FailedAddEditGlobalException $e) {
         }
@@ -74,12 +79,16 @@ class RoleController extends Controller
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditRoleRule());
             $r->request->add(['role_id' => $id]);
-            $this->AccountManager->IsRoleExist(
+            $this->AccountManager->ErrorWhenRoleNotFound(
                 $this->AccountRepository->GetRole($id)
             );
-            $this->AccountManager->IsGroupExist(
+            $this->AccountManager->ErrorWhenRoleExist(
+                $this->AccountRepository->GetRoleByName($r, true)
+            );
+            $this->AccountManager->ErrorWhenGroupNotFound(
                 $this->AccountRepository->GetGroup($r->group_id)
             );
+            // Check Permission List on table Permission
             $this->AccountManager->CheckPermissionList($r->permission);
             $ER = $this->AccountRepository->EditRole($r->all());
             if (!$ER['status']) {
@@ -87,6 +96,7 @@ class RoleController extends Controller
             }
         } catch (\ValidateException $e) {
         } catch (\RoleNotFoundException $e) {
+        } catch (\RoleExistException $e) {
         } catch (\GroupNotFoundException $e) {
         } catch (\PermissionNotFoundException $e) {
         } catch (\FailedAddEditGlobalException $e) {

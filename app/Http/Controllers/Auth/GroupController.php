@@ -49,8 +49,7 @@ class GroupController extends Controller
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditGroupRule());
-            // Is Group Exists
-            $this->AccountManager->IsGroupExist(
+            $this->AccountManager->ErrorWhenGroupExist(
                 $this->AccountRepository->GetGroupByName($r)
             );
             // Check Permission List
@@ -61,6 +60,7 @@ class GroupController extends Controller
                 throw new \App\Exceptions\FailedAddEditGlobalException($AG['message'], 400);
             }
         } catch (\ValidateException $e) {
+        } catch (\GroupExistException $e) {
         } catch (\PermissionNotFoundException $e) {
         } catch (\FailedAddEditGlobalException $e) {
         }
@@ -75,12 +75,12 @@ class GroupController extends Controller
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditGroupRule());
             $r->request->add(['group_id' => $id]);
-
-            // Is Group Exists
-            $this->AccountManager->IsGroupNotExist(
+            $this->AccountManager->ErrorWhenGroupNotFound(
                 $this->AccountRepository->GetGroup($id)
             );
-
+            $this->AccountManager->ErrorWhenGroupExist(
+                $this->AccountRepository->GetGroupByName($r, true)
+            );
             // Check Permission List
             $this->AccountManager->CheckPermissionList($r->permission);
 
