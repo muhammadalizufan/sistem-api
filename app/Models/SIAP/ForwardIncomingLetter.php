@@ -2,6 +2,7 @@
 
 namespace App\Models\SIAP;
 
+use App\Models\Account\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -58,6 +59,6 @@ class ForwardIncomingLetter extends Model
 
     public function User()
     {
-        return $this->hasOne(User::class, "id", "user_id");
+        return $this->hasOne(User::class, "id", "user_id")->select('id', 'name');
     }
 }
