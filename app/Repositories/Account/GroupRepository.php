@@ -34,7 +34,7 @@ trait GroupRepository
         $body = Helpers::ConvertStatusBody($body);
 
         // Update if Exists Or Create New Group
-        $G = Group::updateOrCreate([
+        $G = Group::create([
             'name' => $body['name'],
             "is_active" => $body['status'],
         ]);
@@ -70,6 +70,7 @@ trait GroupRepository
         // Insert MapPayload Permission
         $GP = GroupPermission::insert($permissions);
         if (!$GP) {
+            // Delete GroupID When Insert Permissions Error
             Group::where('id', $G->id)->forceDelete();
             return [
                 "status" => false,
@@ -104,53 +105,72 @@ trait GroupRepository
             ];
         }
         $G->update([
+            "name" => $body['name'],
             "is_active" => $body['status'],
         ]);
 
         // Get Permission By Group ID
-        $GP = GroupPermission::where("group_id", $G->id)->with("Permission")->get()->map(function ($i) {
-            return $i['permission']['name'];
-        });
+        $GP = GroupPermission::where("group_id", $body['group_id'])->with("Permission")->get()
+            ->map(function ($i) {
+                return $i['permission']['name'];
+            });
         if ($GP->count() <= 0) {
             return [
                 "status" => false,
                 "message" => "failed update group",
             ];
         }
-        $EqualPermission = $GP->intersect($body['permission']);
-        $NotEqualPermission = $GP->diff($body['permission']);
+        $Raw = $GP->toArray();
+
+        $GetPermissionID = function (string $name = "") {
+            return Permission::where(["name" => trim($name), "is_active" => 1])->first()->id ?? 0;
+        };
 
         // Update
-        foreach ($EqualPermission as $ep) {
-            $Payload = [
+        $PermissionWillUpdate = collect($Raw)->intersect($body['permission']);
+        foreach ($PermissionWillUpdate->toArray() as $p) {
+            $Query = [
                 "group_id" => $G->id,
-                "permission_id" => Permission::where("name", trim($ep))->first()->id,
+                "permission_id" => $GetPermissionID($p),
             ];
-            $GP = GroupPermission::where($Payload);
-            if (is_object($GP->first())) {
+            $GP = GroupPermission::where($Query);
+            if (is_object($GP)) {
                 $GP->update([
                     "is_active" => $body['status'],
                 ]);
             }
         }
 
-        if (count($NotEqualPermission) <= 0) {
-            return [
-                "status" => true,
-            ];
+        // Insert Or Restore
+        $PermissionWillInsert = collect($body['permission'])->diff($Raw);
+        foreach ($PermissionWillInsert->toArray() as $p) {
+            $PermissionID = $GetPermissionID($p);
+            if ($PermissionID != 0) {
+                $Query = [
+                    "group_id" => $G->id,
+                    "permission_id" => $PermissionID,
+                ];
+                $GP = GroupPermission::withTrashed()->where($Query);
+                if (is_object($GP->first())) {
+                    $GP->restore();
+                    $GP->update([
+                        "is_active" => $body['status'],
+                    ]);
+                } else {
+                    GroupPermission::create(array_merge($Query, ["is_active" => $body['status']]));
+                }
+            }
         }
 
-        // Non Activated Permission
-        foreach ($NotEqualPermission as $nep) {
-            $Payload = [
-                "group_id" => $G->id,
-                "permission_id" => Permission::where("name", trim($nep))->first()->id,
-            ];
-            $GP = GroupPermission::where($Payload);
-            if (is_object($GP->first())) {
-                $GP->update([
-                    "is_active" => 0,
-                ]);
+        // Delete
+        $PermissionWillDelete = collect($Raw)->diff($PermissionWillInsert->merge($PermissionWillUpdate));
+        foreach ($PermissionWillDelete->toArray() as $p) {
+            $PermissionID = $GetPermissionID($p);
+            if ($PermissionID != 0) {
+                GroupPermission::where([
+                    "group_id" => $G->id,
+                    "permission_id" => $PermissionID,
+                ])->delete();
             }
         }
 

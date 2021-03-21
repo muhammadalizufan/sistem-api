@@ -16,7 +16,7 @@ class AccountManager
             throw new \App\Exceptions\PermissionNotFoundException();
         }
         foreach ($Permissions as $key => $p) {
-            if (!Permission::where("name", trim($p))->exists()) {
+            if (!Permission::where(["name" => trim($p), "is_active" => 1])->exists()) {
                 throw new \App\Exceptions\PermissionNotFoundException();
             }
         }
@@ -37,6 +37,13 @@ class AccountManager
     }
 
     public function IsGroupExist(?object $Group = null)
+    {
+        if (is_object($Group)) {
+            throw new \App\Exceptions\GroupExistException();
+        }
+    }
+
+    public function IsGroupNotExist(?object $Group = null)
     {
         if (is_null($Group)) {
             throw new \App\Exceptions\GroupNotFoundException();

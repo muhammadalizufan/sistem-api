@@ -222,7 +222,7 @@ trait UserRepository
         if (count($body) <= 0) {
             return [
                 "status" => false,
-                "message" => "failed change new user password, body is empty",
+                "message" => "failed change user password, body is empty",
             ];
         }
         $U = User::where('email', $body['email'])->update([
@@ -230,10 +230,10 @@ trait UserRepository
                 'rounds' => 10,
             ]),
         ]);
-        if (!is_object($U)) {
+        if (!$U) {
             return [
                 "status" => false,
-                "message" => "failed change new user password",
+                "message" => "failed change user password",
             ];
         }
         return [

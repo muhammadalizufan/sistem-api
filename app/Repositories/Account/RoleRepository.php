@@ -83,6 +83,7 @@ trait RoleRepository
         ];
     }
 
+    // Update Issue
     public function EditRole(array $body = []): array
     {
         // Check Body
@@ -97,7 +98,7 @@ trait RoleRepository
         $body = Helpers::ConvertStatusBody($body);
 
         // Update Role
-        $R = $this->GetOneRole($body['role_id']);
+        $R = $this->GetRole($body['role_id']);
         if (is_null($R)) {
             return [
                 "status" => false,
@@ -112,7 +113,6 @@ trait RoleRepository
         // Get Permission By Role ID
         $RP = RolePermission::where([
             "role_id" => $R->id,
-            "group_id" => $body['group_id'],
         ])->with("Permission")->get()->map(function ($i) {
             return $i['permission']['name'];
         });
@@ -129,7 +129,6 @@ trait RoleRepository
         foreach ($EqualPermission as $ep) {
             $Payload = [
                 "role_id" => $R->id,
-                "group_id" => $body['group_id'],
                 "permission_id" => Permission::where("name", trim($ep))->first()->id,
             ];
             $RP = RolePermission::where($Payload);
