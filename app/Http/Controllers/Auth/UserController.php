@@ -33,7 +33,15 @@ class UserController extends Controller
         if (is_null($id)) {
             $U = $U::select("id", "name", "email", "status")->paginate(20);
         } else {
-            $U = $U->where('id', $id)->first();
+            $U = $U::select("id", "name", "username", "email", "status")->with("Group", "Role", "Permissions")->where('id', $id)->first();
+            if (!is_null($U)) {
+                $U = $U->toArray();
+                $U['role'] = $U['role']['role'] ?? null;
+                $U['group'] = $U['group']['group'] ?? null;
+                $U['permissions'] = collect($U['permissions'])->map(function ($i) {
+                    return $i['permission']['name'];
+                });
+            }
         }
         return $U;
     }

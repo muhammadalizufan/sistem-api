@@ -53,4 +53,9 @@ class Group extends Model
     {
         return ucwords(strtolower(str_replace('_', ' ', $name)));
     }
+
+    public function Permissions()
+    {
+        return $this->hasMany(GroupPermission::class, "group_id", "id")->with("Permission")->select("group_id", "permission_id");
+    }
 }

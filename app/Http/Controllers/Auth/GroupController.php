@@ -30,7 +30,13 @@ class GroupController extends Controller
         if (is_null($id)) {
             $G = $G::paginate(20);
         } else {
-            $G = $G->where('id', $id)->first();
+            $G = $G::with("Permissions")->where('id', $id)->first();
+            if (!is_null($G)) {
+                $G = $G->toArray();
+                $G['permissions'] = collect($G['permissions'])->map(function ($i) {
+                    return $i['permission']['name'];
+                })->toArray();
+            }
         }
         return $G;
     }

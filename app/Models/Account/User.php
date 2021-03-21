@@ -72,4 +72,9 @@ class User extends Model
             ->with("Role");
     }
 
+    public function Permissions()
+    {
+        return $this->hasMany(UserPermission::class, "user_id", "id")->with("Permission")->select("user_id", "permission_id");
+    }
+
 }

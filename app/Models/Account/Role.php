@@ -53,4 +53,14 @@ class Role extends Model
     {
         return ucwords(strtolower(str_replace('_', ' ', $name)));
     }
+
+    public function Group()
+    {
+        return $this->hasOne(RolePermission::class, "role_id", "id")->with("Group");
+    }
+
+    public function Permissions()
+    {
+        return $this->hasMany(RolePermission::class, "role_id", "id")->with("Permission")->select("role_id", "permission_id");
+    }
 }

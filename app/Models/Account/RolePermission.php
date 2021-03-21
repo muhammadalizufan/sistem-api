@@ -53,7 +53,7 @@ class RolePermission extends Model
 
     public function Group()
     {
-        return $this->hasOne(Group::class, "id", "group_id");
+        return $this->hasOne(Group::class, "id", "group_id")->select("id", "name");
     }
 
     public function Role()
@@ -63,6 +63,6 @@ class RolePermission extends Model
 
     public function Permission()
     {
-        return $this->hasOne(Permission::class, "id", "permission_id");
+        return $this->hasOne(Permission::class, "id", "permission_id")->select("id", "name");
     }
 }

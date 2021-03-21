@@ -30,7 +30,14 @@ class RoleController extends Controller
         if (is_null($id)) {
             $R = $R::paginate(20);
         } else {
-            $R = $R->where('id', $id)->first();
+            $R = $R::with("Group", "Permissions")->where('id', $id)->first();
+            if (!is_null($R)) {
+                $R = $R->toArray();
+                $R['group'] = $R['group']['group'] ?? null;
+                $R['permissions'] = collect($R['permissions'])->map(function ($i) {
+                    return $i['permission']['name'];
+                });
+            }
         }
         return $R;
     }
