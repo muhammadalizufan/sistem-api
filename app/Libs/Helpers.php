@@ -1,6 +1,7 @@
 <?php
 namespace App\Libs;
 
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -123,5 +124,28 @@ class Helpers
     public static function StrWithoutExtension(string $string = "")
     {
         return preg_replace('/\\.[^.\\s]{3,4}$/', '', $string);
+    }
+    /**
+     * Convert Dateline Body.
+     *
+     * @return static
+     */
+    public static function ConvertDatelineBodyToDate(?array $body = []): ?array
+    {
+        switch ($body["dateline"]) {
+            case 'OneDay':
+                $body["dateline"] = Carbon::now();
+                break;
+            case 'TwoDay':
+                $body["dateline"] = Carbon::now()->addDays(2);
+                break;
+            case 'ThreeDay':
+                $body["dateline"] = Carbon::now()->addDays(3);
+                break;
+            default:
+                $body["dateline"] = Carbon::now()->addDays(3);
+                break;
+        }
+        return $body;
     }
 }
