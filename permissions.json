@@ -12,6 +12,10 @@
                         "value": "SIAP.Disposition.ViewSearch"
                     },
                     {
+                        "title": "Detail",
+                        "value": "SIAP.Disposition.Detail"
+                    },
+                    {
                         "title": "Add",
                         "value": "SIAP.Disposition.Add"
                     },
