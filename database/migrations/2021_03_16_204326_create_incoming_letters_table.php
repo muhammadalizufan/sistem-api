@@ -16,14 +16,15 @@ class CreateIncomingLettersTable extends Migration
         Schema::connection("siap")->create('incoming_letters', function (Blueprint $table) {
             $table->id();
             $table->bigInteger("user_id")->default(0)->index()->comment("This field related to table users");
-            $table->string("code");
-            $table->string("title");
-            $table->string("from");
+            $table->bigInteger("cat_id")->default(0)->index()->comment("This field related to table categories");
+            $table->string("code")->default("");
+            $table->string("title")->default("");
+            $table->string("from")->default("");
             $table->timestamp("date");
             $table->timestamp("dateline");
-            $table->text("file");
-            $table->text("desc");
-            $table->text("note");
+            $table->text("file")->nullable();
+            $table->text("desc")->nullable();
+            $table->text("note")->nullable();
             $table->tinyInteger("status")->default(0)->comment("0 = Procces; 1 = Success; 2 = Failed;");
             $table->boolean("is_archive")->default(0);
             $table->timestamps();

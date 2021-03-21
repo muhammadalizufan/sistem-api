@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateUserRefreshTokensTable extends Migration
+class CreateRefreshTokensTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,9 @@ class CreateUserRefreshTokensTable extends Migration
      */
     public function up()
     {
-        Schema::connection("account")->create('user_refresh_tokens', function (Blueprint $table) {
+        Schema::connection("account")->create('refresh_tokens', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger("user_id")->default(0)->comment("This field related to table users");
+            $table->bigInteger("user_id")->default(0)->index()->comment("This field related to table users");
             $table->string("refresh_token")->default("");
             $table->string("user_agent")->default("");
             $table->timestamps();
@@ -29,6 +29,6 @@ class CreateUserRefreshTokensTable extends Migration
      */
     public function down()
     {
-        Schema::connection("account")->dropIfExists('user_refresh_tokens');
+        Schema::connection("account")->dropIfExists('refresh_tokens');
     }
 }
