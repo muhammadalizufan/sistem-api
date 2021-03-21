@@ -31,10 +31,14 @@ $router->group(["prefix" => "api"], function () use ($router) {
             $router->group(["prefix" => "auth"], function () use ($router) {
                 $router->post("login", "LoginController@Handler");
                 $router->post("refresh-token", "LoginController@RefreshTokenHandler");
-                $router->post("change-password", ["middleware" => ["auth.private"], "uses" => "UserController@ChangeUserPasswordHandler"]);
+                $router->post("change-password", [
+                    "middleware" => ["auth.private"],
+                    "uses" => "UserController@ChangeUserPasswordHandler",
+                ]);
             });
 
             $router->get("groups", ["middleware" => [], "uses" => "GroupController@GetGroupHandler"]); //"auth.private"
+
             $router->group(["prefix" => "group", "middleware" => []], function () use ($router) { //"auth.private"
                 $router->get("/{id:[0-9]+}", "GroupController@GetGroupHandler");
                 $router->post("add", "GroupController@AddGroupHandler");
@@ -42,6 +46,7 @@ $router->group(["prefix" => "api"], function () use ($router) {
             });
 
             $router->get("roles", ["middleware" => [], "uses" => "RoleController@GetRoleHandler"]); //"auth.private"
+
             $router->group(["prefix" => "role", "middleware" => []], function () use ($router) { //"auth.private"
                 $router->get("/{id:[0-9]+}", "RoleController@GetRoleHandler");
                 $router->post("add", "RoleController@AddRoleHandler");
@@ -49,6 +54,7 @@ $router->group(["prefix" => "api"], function () use ($router) {
             });
 
             $router->get("users", ["middleware" => [], "uses" => "UserController@GetUserHandler"]); //"auth.private"
+
             $router->group(["prefix" => "user", "middleware" => []], function () use ($router) { //"auth.private"
                 $router->get("/{id:[0-9]+}", "UserController@GetUserHandler");
                 $router->post("add", "UserController@AddUserHandler");
@@ -57,9 +63,11 @@ $router->group(["prefix" => "api"], function () use ($router) {
         });
 
         $router->group(["namespace" => "SIAP", "prefix" => "siap", "middleware" => []], function () use ($router) { //"auth.private"
-            $router->get("dispositions", "DispositionController@GetLetterHandler");
+
             $router->get("inboxs", "DispositionController@GetInboxHandler");
             $router->get("inbox/{id:[0-9]+}", "DispositionController@GetInboxHandler");
+
+            $router->get("dispositions", "DispositionController@GetLetterHandler");
             $router->group(["prefix" => "disposition"], function () use ($router) {
                 $router->get("/{id:[0-9]+}", "DispositionController@GetLetterHandler");
                 $router->post("add", "DispositionController@AddNewLetterHandler");
