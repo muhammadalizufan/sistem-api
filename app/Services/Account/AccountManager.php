@@ -22,35 +22,42 @@ class AccountManager
         }
     }
 
-    public function IsUserExist(?object $User = null)
+    public function ErrorWhenUserExist(?object $User = null)
     {
         if (is_object($User)) {
             throw new \App\Exceptions\UserExistException();
         }
     }
 
-    public function IsUserNotExist(?object $User = null)
+    public function ErrorWhenUserNotFound(?object $User = null)
     {
         if (is_null($User)) {
             throw new \App\Exceptions\UserNotFoundException();
         }
     }
 
-    public function IsGroupExist(?object $Group = null)
+    public function ErrorWhenGroupExist(?object $Group = null)
     {
         if (is_object($Group)) {
             throw new \App\Exceptions\GroupExistException();
         }
     }
 
-    public function IsGroupNotExist(?object $Group = null)
+    public function ErrorWhenGroupNotFound(?object $Group = null)
     {
         if (is_null($Group)) {
             throw new \App\Exceptions\GroupNotFoundException();
         }
     }
 
-    public function IsRoleExist(?object $Role = null)
+    public function ErrorWhenRoleExist(?object $Role = null)
+    {
+        if (is_object($Role)) {
+            throw new \App\Exceptions\RoleExistException();
+        }
+    }
+
+    public function ErrorWhenRoleNotFound(?object $Role = null)
     {
         if (is_null($Role)) {
             throw new \App\Exceptions\RoleNotFoundException();

@@ -15,9 +15,13 @@ trait RoleRepository
         return Role::find($id);
     }
 
-    public function GetRoleByName(Request $r): ?object
+    public function GetRoleByName(Request $r, bool $IsNeedCompare = false): ?object
     {
-        return Role::where('name', $r->name)->first();
+        $R = Role::where('name', $r->name)->first();
+        if ($IsNeedCompare) {
+            return (strtolower($R->name) ?? "") == strtolower($r->name) ? null : $R;
+        }
+        return $R;
     }
 
     public function AddNewRole(array $body = []): array
@@ -34,7 +38,7 @@ trait RoleRepository
         $body = Helpers::ConvertStatusBody($body);
 
         // Update if Exists Or Create New Role
-        $R = Role::updateOrCreate([
+        $R = Role::create([
             'name' => $body['name'],
             "is_active" => $body['status'],
         ]);
@@ -51,7 +55,7 @@ trait RoleRepository
             $Payload = [
                 "group_id" => $body['group_id'],
                 "role_id" => $R->id,
-                "permission_id" => Permission::where("name", trim($p))->first()->id ?? 0,
+                "permission_id" => Permission::where(["name" => trim($p), "is_active" => 1])->first()->id ?? 0,
             ];
             if ($Payload['permission_id'] != 0 && !is_object(RolePermission::where($Payload)->first())) {
                 array_push($permissions, array_merge($Payload, [
@@ -71,6 +75,7 @@ trait RoleRepository
         // Insert MapPayload Permission
         $RP = RolePermission::insert($permissions);
         if (!$RP) {
+            // Delete RoleID When Insert Permissions Error
             Role::where('id', $R->id)->forceDelete();
             return [
                 "status" => false,
@@ -90,7 +95,7 @@ trait RoleRepository
         if (count($body) <= 0) {
             return [
                 "status" => false,
-                "message" => "failed update group, body is empty",
+                "message" => "failed update role, body is empty",
             ];
         }
 
@@ -102,61 +107,75 @@ trait RoleRepository
         if (is_null($R)) {
             return [
                 "status" => false,
-                "message" => "failed update role, role id invalid",
+                "message" => "failed update role",
             ];
         }
         $R->update([
             "name" => $body['name'],
+            "group_id" => $body['group_id'],
             "is_active" => $body['status'],
         ]);
 
-        // Get Permission By Role ID
-        $RP = RolePermission::where([
-            "role_id" => $R->id,
-        ])->with("Permission")->get()->map(function ($i) {
-            return $i['permission']['name'];
-        });
-        if ($RP->count() <= 0) {
-            return [
-                "status" => false,
-                "message" => "failed update role",
-            ];
-        }
-        $EqualPermission = $RP->intersect($body['permission']);
-        $NotEqualPermission = $RP->diff($body['permission']);
+        // Get Permission By Group ID
+        $RP = RolePermission::where("role_id", $body['role_id'])->with("Permission")->get()
+            ->map(function ($i) {
+                return $i['permission']['name'];
+            });
+        $Raw = $RP->toArray();
+        $GetPermissionID = function (string $name = ""): int {
+            return Permission::where(["name" => trim($name), "is_active" => 1])->first()->id ?? 0;
+        };
 
         // Update
-        foreach ($EqualPermission as $ep) {
-            $Payload = [
+        $PermissionWillUpdate = collect($Raw)->intersect($body['permission']);
+        foreach ($PermissionWillUpdate->toArray() as $p) {
+            $Query = [
                 "role_id" => $R->id,
-                "permission_id" => Permission::where("name", trim($ep))->first()->id,
+                "permission_id" => $GetPermissionID($p),
             ];
-            $RP = RolePermission::where($Payload);
-            if (is_object($RP->first())) {
-                $RP->update([
+            $GP = RolePermission::where($Query);
+            if (is_object($GP)) {
+                $GP->update([
+                    "group_id" => $body['group_id'],
                     "is_active" => $body['status'],
                 ]);
             }
         }
 
-        if (count($NotEqualPermission) <= 0) {
-            return [
-                "status" => true,
-            ];
+        // Insert Or Restore
+        $PermissionWillInsert = collect($body['permission'])->diff($Raw);
+        foreach ($PermissionWillInsert->toArray() as $p) {
+            $PermissionID = $GetPermissionID($p);
+            if ($PermissionID != 0) {
+                $Query = [
+                    "role_id" => $R->id,
+                    "permission_id" => $PermissionID,
+                ];
+                $GP = RolePermission::onlyTrashed()->where($Query);
+                if (is_object($GP->first())) {
+                    $GP->update([
+                        "group_id" => $body['group_id'],
+                        "is_active" => $body['status'],
+                    ]);
+                    $GP->restore();
+                } else {
+                    RolePermission::create(array_merge($Query, [
+                        "group_id" => $body['group_id'],
+                        "is_active" => $body['status'],
+                    ]));
+                }
+            }
         }
 
-        // Non Activated Permission
-        foreach ($NotEqualPermission as $nep) {
-            $Payload = [
-                "role_id" => $R->id,
-                "group_id" => $body['group_id'],
-                "permission_id" => Permission::where("name", trim($nep))->first()->id,
-            ];
-            $RP = RolePermission::where($Payload);
-            if (is_object($RP->first())) {
-                $RP->update([
-                    "is_active" => 0,
-                ]);
+        // Delete
+        $PermissionWillDelete = collect($Raw)->diff($PermissionWillInsert->merge($PermissionWillUpdate));
+        foreach ($PermissionWillDelete->toArray() as $p) {
+            $PermissionID = $GetPermissionID($p);
+            if ($PermissionID != 0) {
+                RolePermission::where([
+                    "role_id" => $R->id,
+                    "permission_id" => $PermissionID,
+                ])->delete();
             }
         }
 

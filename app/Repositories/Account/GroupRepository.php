@@ -15,9 +15,13 @@ trait GroupRepository
         return Group::find($id);
     }
 
-    public function GetGroupByName(Request $r): ?object
+    public function GetGroupByName(Request $r, bool $IsNeedCompare = false): ?object
     {
-        return Group::where('name', $r->name)->first();
+        $G = Group::where('name', $r->name)->first();
+        if ($IsNeedCompare) {
+            return ($G->name ?? "") == $r->name ? null : $G;
+        }
+        return $G;
     }
 
     public function AddNewGroup(array $body = []): array
@@ -97,7 +101,7 @@ trait GroupRepository
         $body = Helpers::ConvertStatusBody($body);
 
         // Update Group
-        $G = Group::find($body['group_id']);
+        $G = $this->GetGroup($body['group_id']);
         if (is_null($G)) {
             return [
                 "status" => false,
@@ -122,7 +126,7 @@ trait GroupRepository
         }
         $Raw = $GP->toArray();
 
-        $GetPermissionID = function (string $name = "") {
+        $GetPermissionID = function (string $name = ""): int {
             return Permission::where(["name" => trim($name), "is_active" => 1])->first()->id ?? 0;
         };
 

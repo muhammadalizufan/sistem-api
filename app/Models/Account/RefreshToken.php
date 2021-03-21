@@ -4,7 +4,7 @@ namespace App\Models\Account;
 
 use Illuminate\Database\Eloquent\Model;
 
-class UserRefreshToken extends Model
+class RefreshToken extends Model
 {
     /**
      * Specific Connection.
@@ -18,7 +18,7 @@ class UserRefreshToken extends Model
      *
      * @var TableName
      */
-    protected $table = 'user_refresh_tokens';
+    protected $table = 'refresh_tokens';
 
     /**
      * The attributes that are mass assignable.

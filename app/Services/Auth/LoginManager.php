@@ -28,7 +28,7 @@ class LoginManager
     public function GenerateRefreshToken(Request $r, ?object $User = null): string
     {
         $RefToken = hash('sha256', $User->id . $r->server("HTTP_USER_AGENT"));
-        $this->AccountRepository->CreateUserRefreshToken($r, $User, $RefToken);
+        $this->AccountRepository->CreateRefreshToken($r, $User, $RefToken);
         return $RefToken;
     }
 

@@ -1,10 +1,11 @@
 <?php
 namespace App\Repositories\Account;
 
+use App\Libs\Helpers;
 use App\Models\Account\Permission;
+use App\Models\Account\RefreshToken;
 use App\Models\Account\User;
 use App\Models\Account\UserPermission;
-use App\Models\Account\UserRefreshToken;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -33,18 +34,18 @@ trait UserRepository
             });
     }
 
-    public function CreateUserRefreshToken(Request $r, $User, $RefreshToken): ?object
+    public function CreateRefreshToken(Request $r, $User, $RefreshToken): ?object
     {
-        return UserRefreshToken::updateOrCreate([
+        return RefreshToken::updateOrCreate([
             "user_id" => $User->id,
             "user_agent" => $r->server("HTTP_USER_AGENT"),
             "refresh_token" => $RefreshToken,
         ]);
     }
 
-    public function GetUserRefreshToken(?string $RefreshToken = null): ?object
+    public function GetRefreshToken(?string $RefreshToken = null): ?object
     {
-        return UserRefreshToken::where('refresh_token', $RefreshToken)->with('User')->first();
+        return RefreshToken::where('refresh_token', $RefreshToken)->with('User')->first();
     }
 
     public function AddNewUser(array $body = []): array
@@ -56,20 +57,11 @@ trait UserRepository
             ];
         }
 
-        switch (strtolower($body['status'] ?? "")) {
-            case 'active':
-                $body['status'] = 1;
-                break;
-            case 'inactive':
-                $body['status'] = 0;
-                break;
-            default:
-                $body['status'] = 0;
-                break;
-        }
+        // Convert Request Status
+        $body = Helpers::ConvertStatusBody($body);
 
         // Update if Exists Or Create New User
-        $U = User::updateOrCreate([
+        $U = User::create([
             "name" => $body['name'],
             "email" => $body['email'],
             "password" => Hash::make("Rahasia123&", [
@@ -131,17 +123,8 @@ trait UserRepository
             ];
         }
 
-        switch (strtolower($body['status'] ?? "")) {
-            case 'active':
-                $body['status'] = 1;
-                break;
-            case 'inactive':
-                $body['status'] = 0;
-                break;
-            default:
-                $body['status'] = 0;
-                break;
-        }
+        // Convert Request Status
+        $body = Helpers::ConvertStatusBody($body);
 
         // Update
         $U = User::find($body['user_id']);
@@ -157,61 +140,42 @@ trait UserRepository
             ];
         }
 
-        // Get Permission By Role ID
+        // Delete Old Permission
         $UP = UserPermission::where([
             "user_id" => $body['user_id'],
-            "role_id" => $body['role_id'],
-            "group_id" => $body['group_id'],
-        ])->with("Permission")->get()->map(function ($i) {
-            return $i['permission']['name'];
-        });
-        if ($UP->count() <= 0) {
+        ]);
+        $UP->delete();
+
+        // Check Body Permissions Payload
+        $permissions = [];
+        foreach ($body['permission'] as $p) {
+            $Payload = [
+                "user_id" => $U->id,
+                "group_id" => $body['group_id'],
+                "role_id" => $body['role_id'],
+                "permission_id" => Permission::where(["name" => trim($p), "is_active" => 1])->first()->id ?? 0,
+            ];
+            if ($Payload['permission_id'] != 0 && !is_object(UserPermission::where($Payload)->first())) {
+                array_push($permissions, array_merge($Payload, [
+                    "is_active" => $body['status'],
+                    "created_at" => Carbon::now(),
+                    "updated_at" => Carbon::now(),
+                ]));
+            }
+        }
+        if (count($permissions) <= 0) {
             return [
                 "status" => false,
-                "message" => "failed update role",
+                "message" => "user permission already given",
             ];
         }
-        $EqualPermission = $UP->intersect($body['permission']);
-        $NotEqualPermission = $UP->diff($body['permission']);
-
-        // Update
-        foreach ($EqualPermission as $ep) {
-            $Payload = [
-                "user_id" => $body['user_id'],
-                "role_id" => $body['role_id'],
-                "group_id" => $body['group_id'],
-                "permission_id" => Permission::where("name", trim($ep))->first()->id,
-            ];
-            $UP = UserPermission::where($Payload);
-            if (is_object($UP->first())) {
-                $UP->update([
-                    "is_active" => $body['status'],
-                ]);
-            }
-        }
-
-        if (count($NotEqualPermission) <= 0) {
+        $UP = UserPermission::insert($permissions);
+        if (!$UP) {
             return [
-                "status" => true,
+                "status" => false,
+                "message" => "failed add user permission",
             ];
         }
-
-        // Non Activated Permission
-        foreach ($NotEqualPermission as $nep) {
-            $Payload = [
-                "user_id" => $body['user_id'],
-                "role_id" => $body['role_id'],
-                "group_id" => $body['group_id'],
-                "permission_id" => Permission::where("name", trim($nep))->first()->id,
-            ];
-            $UP = UserPermission::where($Payload);
-            if (is_object($UP->first())) {
-                $UP->update([
-                    "is_active" => 0,
-                ]);
-            }
-        }
-
         return [
             "status" => true,
         ];
