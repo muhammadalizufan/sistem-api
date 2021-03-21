@@ -32,6 +32,8 @@ class Handler extends ExceptionHandler
         FailedAddEditGlobalException::class,
         RoleNotFoundException::class,
         GroupNotFoundException::class,
+        GroupExistException::class,
+        RoleExistException::class,
         UserExistException::class,
     ];
 
