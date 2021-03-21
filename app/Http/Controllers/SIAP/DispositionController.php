@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\SIAP;
 
 use App\Http\Controllers\Controller;
+use App\Models\SIAP\ForwardIncomingLetter;
 use App\Models\SIAP\IncomingLetter;
 use App\Repositories\SIAP\SIAPRepository;
 use App\Validators\ValidatorManager;
@@ -19,6 +20,17 @@ class DispositionController extends Controller
     public function __construct()
     {
         $this->SIAPRepository = new SIAPRepository;
+    }
+
+    public function GetInboxHandler(Request $r, ?int $id = null)
+    {
+        $IL = new ForwardIncomingLetter;
+        if (is_null($id)) {
+            $IL = $IL::with("IncomingLetter", "User")->paginate(20);
+        } else {
+            $IL = $IL::with("IncomingLetter", "User")->where('id', $id)->first();
+        }
+        return $IL;
     }
 
     public function GetLetterHandler(Request $r, ?int $id = null)
@@ -41,6 +53,7 @@ class DispositionController extends Controller
             'file' => 'required|string',
             'desc' => 'required|string',
             'note' => 'required|string',
+            'tag' => 'array|nullable',
             'forward_to' => 'required',
             'forward_to.responders' => 'required|min:1|array',
             'forward_to.responders.*' => 'required',
@@ -51,7 +64,7 @@ class DispositionController extends Controller
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule());
-            $r->request->add(['user_id' => $r->UserData->id]);
+            $r->request->add(['user_id' => $r->UserData->id ?? 1]);
             $AL = $this->SIAPRepository->AddNewLetter($r->all());
             if (!$AL['status']) {
                 throw new \App\Exceptions\FailedAddEditGlobalException($AL['message'], 400);
@@ -79,7 +92,7 @@ class DispositionController extends Controller
         }
         return response([
             "api_version" => "1.0",
-            "message" => "success add new letter",
+            "message" => "success edit letter",
         ], 201);
     }
 

@@ -49,7 +49,13 @@ class GroupController extends Controller
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditGroupRule());
+            // Is Group Exists
+            $this->AccountManager->IsGroupExist(
+                $this->AccountRepository->GetGroupByName($r)
+            );
+            // Check Permission List
             $this->AccountManager->CheckPermissionList($r->permission);
+            // Add Group Repo
             $AG = $this->AccountRepository->AddNewGroup($r->all());
             if (!$AG['status']) {
                 throw new \App\Exceptions\FailedAddEditGlobalException($AG['message'], 400);
@@ -69,10 +75,16 @@ class GroupController extends Controller
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditGroupRule());
             $r->request->add(['group_id' => $id]);
-            $this->AccountManager->IsGroupExist(
+
+            // Is Group Exists
+            $this->AccountManager->IsGroupNotExist(
                 $this->AccountRepository->GetGroup($id)
             );
+
+            // Check Permission List
             $this->AccountManager->CheckPermissionList($r->permission);
+
+            // Edit Group Repo
             $EG = $this->AccountRepository->EditGroup($r->all());
             if (!$EG['status']) {
                 throw new \App\Exceptions\FailedAddEditGlobalException($EG['message'], 400);

@@ -120,11 +120,12 @@ class UserController extends Controller
 
     private static function ChangeUserPasswordRule(): array
     {
-        // need field password_confirmation, new_password_confirmation
+        // need field new_password_confirmation
         return [
             'email' => 'required|string|email',
             'password' => 'required|string|min:6|max:32|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
-            'new_password' => 'required|confirmed|string|min:6|max:32|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
+            'new_password' => 'required|string|min:6|max:32|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
+            'new_password_confirmation' => 'required_with:new_password|same:new_password',
         ];
     }
 
