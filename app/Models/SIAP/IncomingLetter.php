@@ -87,6 +87,11 @@ class IncomingLetter extends Model
         }
     }
 
+    public function Category()
+    {
+        return $this->hasOne(Category::class, "id", "cat_id")->select('id', 'name');
+    }
+
     public function User()
     {
         return $this->hasOne(User::class, "id", "user_id")->select('id', 'name');

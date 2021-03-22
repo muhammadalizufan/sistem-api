@@ -73,6 +73,9 @@ class ForwardIncomingLetter extends Model
             case 2:
                 return "Responder";
                 break;
+            case 3:
+                return "Receiver";
+                break;
             default:
                 return null;
                 break;
@@ -81,7 +84,7 @@ class ForwardIncomingLetter extends Model
 
     public function IncomingLetter()
     {
-        return $this->hasOne(IncomingLetter::class, "id", "incoming_letter_id");
+        return $this->hasOne(IncomingLetter::class, "id", "incoming_letter_id")->with("Category");
     }
 
     public function User()

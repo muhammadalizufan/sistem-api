@@ -76,7 +76,7 @@ class GroupController extends Controller
         ], 201);
     }
 
-    public function EditGroupHandler(Request $r, int $id = 0)
+    public function EditGroupHandler(Request $r, ?int $id = null)
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditGroupRule());

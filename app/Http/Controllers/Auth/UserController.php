@@ -90,7 +90,7 @@ class UserController extends Controller
         ], 201);
     }
 
-    public function EditUserHandler(Request $r, int $id = 0)
+    public function EditUserHandler(Request $r, ?int $id = null)
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditUserRule());
