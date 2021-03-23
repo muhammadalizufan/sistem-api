@@ -13,7 +13,7 @@
                     },
                     {
                         "title": "Detail",
-                        "value": "SIAP.Disposition.Detail"
+                        "value": "SIAP.Disposition.ViewDetail"
                     },
                     {
                         "title": "Add",
@@ -56,6 +56,10 @@
                         "value": "Setting.GroupManagement.ViewSearch"
                     },
                     {
+                        "title": "View / Detail",
+                        "value": "Setting.GroupManagement.ViewDetail"
+                    },
+                    {
                         "title": "Add",
                         "value": "Setting.GroupManagement.Add"
                     },
@@ -74,6 +78,10 @@
                         "value": "Setting.UserManagement.Member.ViewSearch"
                     },
                     {
+                        "title": "View / Detail",
+                        "value": "Setting.UserManagement.Member.ViewDetail"
+                    },
+                    {
                         "title": "Add User",
                         "value": "Setting.UserManagement.Member.Add"
                     },
@@ -84,6 +92,10 @@
                     {
                         "title": "Previllage User View / Search",
                         "value": "Setting.UserManagement.Role.ViewSearch"
+                    },
+                    {
+                        "title": "Previllage User View / Detail",
+                        "value": "Setting.UserManagement.Role.ViewDetail"
                     },
                     {
                         "title": "Add Previllage User",
