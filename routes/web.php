@@ -94,7 +94,7 @@ $router->group(["prefix" => "api"], function () use ($router) {
                 return response("OK");
             });
             $router->get("test-add-user", function () {
-                if (is_object(Group::where("name", trim("Super Admin"))->first())) {
+                if (is_object(User::where("name", trim("Super Admin"))->first())) {
                     return response("ready");
                 }
                 $U = User::create([
