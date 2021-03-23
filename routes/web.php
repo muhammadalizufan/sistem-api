@@ -2,6 +2,12 @@
 
 /** @var \Laravel\Lumen\Routing\Router $router */
 
+use App\Models\Account\Group;
+use App\Models\Account\GroupPermission;
+use App\Models\Account\Permission;
+use App\Models\Account\Role;
+use App\Models\Account\RolePermission;
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -27,6 +33,64 @@ $router->group(["prefix" => "api"], function () use ($router) {
             $router->get("permissions", "PermissionController@GetAllPermissionRawHandler");
             $router->get("list-permissions", "PermissionController@GetAllPermissionHandler");
             $router->get("update-permissions", "PermissionController@UpdatePermissionHandler");
+            $router->get("test-add-user", function () {
+                if (is_object(Group::where("name", trim("Super Admin"))->first())) {
+                    return response("ready");
+                }
+                $G = Group::create([
+                    "name" => "Super Admin",
+                    "is_active" => 1,
+                ]);
+                $A = collect([]);
+                foreach (["SIAP.Disposition", "Setting.GroupManagement", "Setting.UserManagement", "Setting.UserProfile"] as $p) {
+                    $A->push([
+                        'group_id' => $G->id,
+                        'permission_id' => Permission::where(['name' => trim($p), "is_active" => 1])->first()->id ?? 0,
+                        'is_active' => 1,
+                    ]);
+                }
+                GroupPermission::insert($A->toArray());
+                $R = Role::create([
+                    "name" => "Super Admin",
+                    "is_active" => 1,
+                ]);
+                $B = collect([]);
+                foreach ([
+                    "SIAP.Disposition",
+                    "SIAP.Disposition.ViewSearch",
+                    "SIAP.Disposition.ViewDetail",
+                    "SIAP.Disposition.Add",
+                    "SIAP.Disposition.Edit",
+                    "SIAP.Disposition.Send",
+                    "Setting.GroupManagement",
+                    "Setting.GroupManagement.ViewSearch",
+                    "Setting.GroupManagement.ViewDetail",
+                    "Setting.GroupManagement.Add",
+                    "Setting.GroupManagement.Edit",
+                    "Setting.UserManagement",
+                    "Setting.UserManagement.Member.ViewSearch",
+                    "Setting.UserManagement.Member.ViewDetail",
+                    "Setting.UserManagement.Member.Add",
+                    "Setting.UserManagement.Member.Edit",
+                    "Setting.UserManagement.Role.ViewSearch",
+                    "Setting.UserManagement.Role.ViewDetail",
+                    "Setting.UserManagement.Role.Add",
+                    "Setting.UserManagement.Role.Edit",
+                    "Setting.UserProfile",
+                    "Setting.UserProfile.View",
+                    "Setting.UserProfile.Edit",
+                    "Setting.UserProfile.ChangePassword",
+                ] as $p) {
+                    $B->push([
+                        'group_id' => $G->id,
+                        'role_id' => $R->id,
+                        'permission_id' => Permission::where(['name' => trim($p), "is_active" => 1])->first()->id ?? 0,
+                        'is_active' => 1,
+                    ]);
+                }
+                RolePermission::insert($A->toArray());
+                return response("OK");
+            });
 
             $router->group(["prefix" => "auth"], function () use ($router) {
                 $router->post("login", "LoginController@Handler");

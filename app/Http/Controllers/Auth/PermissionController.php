@@ -40,7 +40,7 @@ class PermissionController extends Controller
 
         $Array = collect([]);
         foreach ($P as $key => $p) {
-            $Array->push($p['value']);
+            // $Array->push($p['value']);
             Helpers::IterationPermissionChild($Array, $p['child']);
         }
 
