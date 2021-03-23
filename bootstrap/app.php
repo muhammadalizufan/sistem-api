@@ -77,6 +77,7 @@ $app->configure('queue');
 
 $app->middleware([
     App\Http\Middleware\CorsMiddleware::class,
+    App\Http\Middleware\PermissionMiddleware::class,
 ]);
 
 $app->routeMiddleware([

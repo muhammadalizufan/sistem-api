@@ -32,54 +32,127 @@ $router->group(["prefix" => "api"], function () use ($router) {
                 $router->post("login", "LoginController@Handler");
                 $router->post("refresh-token", "LoginController@RefreshTokenHandler");
                 $router->post("change-password", [
-                    "middleware" => ["auth.private"],
+                    "permission" => "Setting.UserProfile.ChangePassword",
+                    "middleware" => [
+                        "auth.private",
+                    ],
                     "uses" => "UserController@ChangeUserPasswordHandler",
                 ]);
             });
 
             // Start-Group
-            $router->get("groups", ["middleware" => ["auth.private"], "uses" => "GroupController@GetGroupHandler"]);
+            $router->get("groups", [
+                "permission" => "Setting.GroupManagement.ViewSearch",
+                "middleware" => [
+                    "auth.private",
+                ],
+                "uses" => "GroupController@GetGroupHandler",
+            ]);
 
             $router->group(["prefix" => "group", "middleware" => ["auth.private"]], function () use ($router) {
-                $router->get("/{id:[0-9]+}", "GroupController@GetGroupHandler");
-                $router->post("add", "GroupController@AddGroupHandler");
-                $router->post("update/{id:[0-9]+}", "GroupController@EditGroupHandler");
+                $router->get("/{id:[0-9]+}", [
+                    "permission" => "Setting.GroupManagement.ViewDetail",
+                    "uses" => "GroupController@GetGroupHandler",
+                ]);
+                $router->post("add", [
+                    "permission" => "Setting.GroupManagement.Add",
+                    "uses" => "GroupController@AddGroupHandler",
+                ]);
+                $router->post("update/{id:[0-9]+}", [
+                    "permission" => "Setting.GroupManagement.Edit",
+                    "uses" => "GroupController@EditGroupHandler",
+                ]);
             });
             // End-Group
 
             // Start-Role
-            $router->get("roles", ["middleware" => ["auth.private"], "uses" => "RoleController@GetRoleHandler"]);
+            $router->get("roles", [
+                "permission" => "Setting.UserManagement.Role.ViewSearch",
+                "middleware" => [
+                    "auth.private",
+                ],
+                "uses" => "RoleController@GetRoleHandler",
+            ]);
 
             $router->group(["prefix" => "role", "middleware" => ["auth.private"]], function () use ($router) {
-                $router->get("/{id:[0-9]+}", "RoleController@GetRoleHandler");
-                $router->post("add", "RoleController@AddRoleHandler");
-                $router->post("update/{id:[0-9]+}", "RoleController@EditRoleHandler");
+                $router->get("/{id:[0-9]+}", [
+                    "permission" => "Setting.UserManagement.Role.ViewDetail",
+                    "uses" => "RoleController@GetRoleHandler",
+                ]);
+                $router->post("add", [
+                    "permission" => "Setting.UserManagement.Role.Add",
+                    "uses" => "RoleController@AddRoleHandler",
+                ]);
+                $router->post("update/{id:[0-9]+}", [
+                    "permission" => "Setting.UserManagement.Role.Edit",
+                    "uses" => "RoleController@EditRoleHandler",
+                ]);
             });
             // End-Role
 
             // Start-User
-            $router->get("users", ["middleware" => ["auth.private"], "uses" => "UserController@GetUserHandler"]);
+            $router->get("users", [
+                "permission" => "Setting.UserManagement.Member.ViewSearch",
+                "middleware" => [
+                    "auth.private",
+                ],
+                "uses" => "UserController@GetUserHandler",
+            ]);
 
             $router->group(["prefix" => "user", "middleware" => ["auth.private"]], function () use ($router) {
-                $router->get("/{id:[0-9]+}", "UserController@GetUserHandler");
-                $router->post("add", "UserController@AddUserHandler");
-                $router->post("update/{id:[0-9]+}", "UserController@EditUserHandler");
+                $router->get("/{id:[0-9]+}", [
+                    "permission" => "Setting.UserManagement.Member.ViewDetail",
+                    "uses" => "UserController@GetUserHandler",
+                ]);
+                $router->post("add", [
+                    "permission" => "Setting.UserManagement.Member.Add",
+                    "uses" => "UserController@AddUserHandler",
+                ]);
+                $router->post("update/{id:[0-9]+}", [
+                    "permission" => "Setting.UserManagement.Member.Edit",
+                    "uses" => "UserController@EditUserHandler",
+                ]);
             });
             // End-User
         });
 
         $router->group(["namespace" => "SIAP", "prefix" => "siap", "middleware" => ["auth.private"]], function () use ($router) {
 
-            $router->get("inboxs", "DispositionController@GetInboxHandler");
-            $router->get("inbox/{id:[0-9]+}", "DispositionController@GetInboxHandler");
+            $router->get("inboxs", [
+                "permission" => "SIAP.Disposition.ViewSearch",
+                "uses" => "DispositionController@GetInboxHandler",
+            ]);
+            $router->get("inbox/{id:[0-9]+}", [
+                "permission" => "SIAP.Disposition.ViewSearch",
+                "uses" => "DispositionController@GetInboxHandler",
+            ]);
 
-            $router->get("dispositions", "DispositionController@GetLetterHandler");
+            $router->get("dispositions", [
+                "permission" => "SIAP.Disposition.ViewSearch",
+                "uses" => "DispositionController@GetLetterHandler",
+            ]);
+
             $router->group(["prefix" => "disposition"], function () use ($router) {
-                $router->get("/{id:[0-9]+}", "DispositionController@GetLetterHandler");
-                $router->post("add", "DispositionController@AddNewLetterHandler");
-                $router->post("update/{id:[0-9]+}", "DispositionController@EditLetterHandler");
-                $router->post("comment/{id:[0-9]+}", "DispositionController@CommentLetterHandler");
-                $router->post("send/{id:[0-9]+}", "DispositionController@SendLetterHandler");
+                $router->get("/{id:[0-9]+}", [
+                    "permission" => "SIAP.Disposition.ViewDetail",
+                    "uses" => "DispositionController@GetLetterHandler",
+                ]);
+                $router->post("add", [
+                    "permission" => "SIAP.Disposition.Add",
+                    "uses" => "DispositionController@AddNewLetterHandler",
+                ]);
+                $router->post("update/{id:[0-9]+}", [
+                    "permission" => "SIAP.Disposition.Edit",
+                    "uses" => "DispositionController@EditLetterHandler",
+                ]);
+                $router->post("comment/{id:[0-9]+}", [
+                    "permission" => "SIAP.Disposition",
+                    "uses" => "DispositionController@CommentLetterHandler",
+                ]);
+                $router->post("send/{id:[0-9]+}", [
+                    "permission" => "SIAP.Disposition.Send",
+                    "uses" => "DispositionController@SendLetterHandler",
+                ]);
             });
         });
     });

@@ -24,6 +24,10 @@
                         "value": "SIAP.Disposition.Edit"
                     },
                     {
+                        "title": "Comment",
+                        "value": "SIAP.Disposition.Comment"
+                    },
+                    {
                         "title": "Decision",
                         "value": "SIAP.Disposition.Decision"
                     },
@@ -102,6 +106,10 @@
                     {
                         "title": "Edit",
                         "value": "Setting.UserProfile.Edit"
+                    },
+                    {
+                        "title": "Change Password",
+                        "value": "Setting.UserProfile.ChangePassword"
                     }
                 ]
             }
