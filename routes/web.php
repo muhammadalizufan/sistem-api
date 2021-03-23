@@ -9,6 +9,7 @@ use App\Models\Account\Role;
 use App\Models\Account\RolePermission;
 use App\Models\Account\User;
 use App\Models\Account\UserPermission;
+use Illuminate\Support\Facades\Hash;
 
 /*
 |--------------------------------------------------------------------------
