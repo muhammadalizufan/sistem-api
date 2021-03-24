@@ -73,21 +73,25 @@ class DispositionController extends Controller
         }
         $IL = $IL->where("is_archive", $r->input("is_archive", 0));
 
+        $MapFILs = function ($FIL) {
+            return collect($FIL)->map(function ($i) {
+                return [
+                    "comment" => $i['comment'],
+                    "user" => $i['user'],
+                ];
+            });
+        };
+
         if (is_null($id)) {
             $IL = collect($IL->paginate(20))->toArray();
-            $IL['data'] = collect($IL['data'])->map(function ($i) {
-                $i['forward_incoming_letters'] = collect($i['forward_incoming_letters'])->map(function ($i) {
-                    return $i['user'];
-                });
-                return $i;
+            $IL['data'] = collect($IL['data'])->map(function ($i) use ($MapFILs) {
+                $i['forward_incoming_letters'] = $MapFILs($i['forward_incoming_letters'] ?? []);
             });
         } else {
             $IL = $IL->where('id', $id)->first();
             if (is_object($IL)) {
                 $IL = $IL->toArray();
-                $IL['forward_incoming_letters'] = collect($IL['forward_incoming_letters'] ?? [])->map(function ($i) {
-                    return $i['user'];
-                });
+                $IL['forward_incoming_letters'] = $MapFILs($IL['forward_incoming_letters'] ?? []);
             }
         }
         return $IL;
