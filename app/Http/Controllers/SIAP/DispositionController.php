@@ -64,8 +64,8 @@ class DispositionController extends Controller
 
     public function GetLetterHandler(Request $r, ?int $id = null)
     {
-        $IL = IncomingLetter::with(["User", "Category", "ForwardIncomingLetters" => function ($q) {
-            $q->where("types", "!=", 3);
+        $IL = IncomingLetter::with(["User", "Category", "ForwardIncomingLetters" => function ($q) use ($r) {
+            $q->where("user_id", "!=", $r->UserData->id);
         }]);
 
         if ($r->has("status") && !empty($r->input("status"))) {
