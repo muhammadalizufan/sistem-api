@@ -76,8 +76,10 @@ class DispositionController extends Controller
         $MapFILs = function ($FIL) {
             return collect($FIL)->map(function ($i) {
                 return [
-                    "comment" => $i['comment'],
                     "user" => $i['user'],
+                    "comment" => $i['comment'],
+                    'created_at' => $i['created_at'],
+                    'updated_at' => $i['updated_at'],
                 ];
             });
         };
