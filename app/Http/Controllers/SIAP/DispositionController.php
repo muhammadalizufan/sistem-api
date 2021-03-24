@@ -25,12 +25,14 @@ class DispositionController extends Controller
     public function GetInboxHandler(Request $r, ?int $id = null)
     {
         $IL = ForwardIncomingLetter::with("IncomingLetter", "User", "Tags");
+
         $IL = $IL->whereHas("IncomingLetter", function ($q) use ($r) {
             if ($r->has("status") && !empty($r->input("status"))) {
                 $q->where("status", $r->input("status", 0));
             }
             $q->where("is_archive", 0);
         });
+
         if (is_object($r->UserData)) {
             $UID = $r->UserData->id;
             $IL = $IL->where("user_id", $UID);
@@ -62,11 +64,25 @@ class DispositionController extends Controller
 
     public function GetLetterHandler(Request $r, ?int $id = null)
     {
-        $IL = new IncomingLetter;
+        $IL = IncomingLetter::with(["User", "Category", "ForwardIncomingLetters" => function ($q) {
+            $q->where("types", "!=", 3);
+        }]);
+
+        if ($r->has("status") && !empty($r->input("status"))) {
+            $IL = $IL->where("status", $r->input("status", 0));
+        }
+        $IL = $IL->where("is_archive", $r->input("is_archive", 0));
+
         if (is_null($id)) {
-            $IL = $IL::with("User", "Category")->paginate(20);
+            $IL = collect($IL->paginate(20))->toArray();
+            $IL['data'] = collect($IL['data'])->map(function ($i) {
+                $i['forward_incoming_letters'] = collect($i['forward_incoming_letters'])->map(function ($i) {
+                    return $i['user']['name'];
+                });
+                return $i;
+            });
         } else {
-            $IL = $IL::with("User", "Category")->where('id', $id)->first();
+            $IL = $IL->where('id', $id)->first();
         }
         return $IL;
     }

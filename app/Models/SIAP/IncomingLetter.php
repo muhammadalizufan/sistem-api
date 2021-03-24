@@ -87,6 +87,11 @@ class IncomingLetter extends Model
         }
     }
 
+    public function ForwardIncomingLetters()
+    {
+        return $this->hasMany(ForwardIncomingLetter::class, "incoming_letter_id", "id")->with("User");
+    }
+
     public function Category()
     {
         return $this->hasOne(Category::class, "id", "cat_id")->select('id', 'name');
