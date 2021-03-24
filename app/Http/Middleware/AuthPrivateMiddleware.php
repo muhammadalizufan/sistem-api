@@ -37,8 +37,11 @@ class AuthPrivateMiddleware
             if (is_null($Permissions)) {
                 throw new \Exception("User Not Found");
             }
-            if (!in_array($request->route_permission ?? "", $Permissions->toArray() ?? [])) {
-                throw new \Exception("Sorry you doesn`t have a permission on this feature");
+            $RP = $request->input("route_permission");
+            if (!is_bool($RP)) {
+                if (!in_array($RP, $Permissions->toArray() ?? [])) {
+                    throw new \Exception("Sorry you doesn`t have a permission on this feature");
+                }
             }
             $this->TokenIsExp($U);
             $request->request->add(['UserData' => $U->data]);
