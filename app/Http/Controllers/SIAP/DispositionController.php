@@ -24,9 +24,18 @@ class DispositionController extends Controller
 
     public function GetInboxHandler(Request $r, ?int $id = null)
     {
-        $IL = new ForwardIncomingLetter;
+        $IL = ForwardIncomingLetter::with("IncomingLetter", "User", "Tags");
+        $IL = $IL->whereHas("IncomingLetter", function ($q) {
+            $q->where("is_archive", 0);
+        });
+        if (is_object($r->UserData)) {
+            $UID = $r->UserData->id;
+            $IL = $IL->where("user_id", $UID);
+            if (is_object(ForwardIncomingLetter::where("user_id", $UID)->where("types", 3)->first())) {
+                $IL = $IL->where("types", "!=", 3);
+            }
+        }
         if (is_null($id)) {
-            $IL = $IL::with("IncomingLetter", "User", "Tags");
             $IL = collect($IL->paginate(20))->toArray();
             if (count($IL['data']) > 0) {
                 $IL['data'] = collect($IL['data'])->map(function ($i) {
@@ -37,7 +46,7 @@ class DispositionController extends Controller
                 });
             }
         } else {
-            $IL = $IL::with("IncomingLetter", "User", "Tags")->where('id', $id)->first();
+            $IL = $IL->first();
             if (is_object($IL)) {
                 $IL = $IL->toArray();
                 $IL['tags'] = collect($IL['tags'])->map(function ($i) {
