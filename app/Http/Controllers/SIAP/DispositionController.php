@@ -83,9 +83,12 @@ class DispositionController extends Controller
             });
         } else {
             $IL = $IL->where('id', $id)->first();
-            $IL = collect($IL->forward_incoming_letters ?? [])->map(function ($i) {
-                return $i['user'];
-            });
+            if (is_object($IL)) {
+                $IL = $IL->toArray();
+                $IL['forward_incoming_letters'] = collect($IL['forward_incoming_letters'] ?? [])->map(function ($i) {
+                    return $i['user'];
+                });
+            }
         }
         return $IL;
     }
