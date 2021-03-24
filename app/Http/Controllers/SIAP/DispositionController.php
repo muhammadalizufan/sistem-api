@@ -25,7 +25,10 @@ class DispositionController extends Controller
     public function GetInboxHandler(Request $r, ?int $id = null)
     {
         $IL = ForwardIncomingLetter::with("IncomingLetter", "User", "Tags");
-        $IL = $IL->whereHas("IncomingLetter", function ($q) {
+        $IL = $IL->whereHas("IncomingLetter", function ($q) use ($r) {
+            if ($r->has("status") && !empty($r->input("status"))) {
+                $q->where("status", $r->input("status", 0));
+            }
             $q->where("is_archive", 0);
         });
         if (is_object($r->UserData)) {
