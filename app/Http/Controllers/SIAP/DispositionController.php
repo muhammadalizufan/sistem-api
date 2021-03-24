@@ -77,12 +77,15 @@ class DispositionController extends Controller
             $IL = collect($IL->paginate(20))->toArray();
             $IL['data'] = collect($IL['data'])->map(function ($i) {
                 $i['forward_incoming_letters'] = collect($i['forward_incoming_letters'])->map(function ($i) {
-                    return $i['user']['name'];
+                    return $i['user'];
                 });
                 return $i;
             });
         } else {
             $IL = $IL->where('id', $id)->first();
+            $IL = collect($IL->forward_incoming_letters ?? [])->map(function ($i) {
+                return $i['user'];
+            });
         }
         return $IL;
     }
