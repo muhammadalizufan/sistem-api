@@ -86,6 +86,7 @@ class DispositionController extends Controller
             $IL = collect($IL->paginate(20))->toArray();
             $IL['data'] = collect($IL['data'])->map(function ($i) use ($MapFILs) {
                 $i['forward_incoming_letters'] = $MapFILs($i['forward_incoming_letters'] ?? []);
+                return $i;
             });
         } else {
             $IL = $IL->where('id', $id)->first();
