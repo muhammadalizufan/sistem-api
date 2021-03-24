@@ -24,7 +24,7 @@ class PermissionMiddleware
         $LastArray = $PathInfo[count($PathInfo) - 1];
         $PathInfo = is_numeric($LastArray) ? substr_replace($PathInfoOld, "{id:[0-9]+}", strlen((string) $LastArray) * -1) : $PathInfoOld;
 
-        $Permission = $RouteData[$Method . $PathInfo]['action']['permission'] ?? false;
+        $Permission = $RouteData[$Method . str_replace("//", "/", $PathInfo)]['action']['permission'] ?? false;
         $r->request->add(["route_permission" => $Permission]);
         return $next($r);
     }
