@@ -59,7 +59,7 @@ class DispositionController extends Controller
                 });
             }
         }
-        return response($IL);
+        return $IL;
     }
 
     public function GetLetterHandler(Request $r, ?int $id = null)
@@ -94,7 +94,7 @@ class DispositionController extends Controller
                 $IL['forward_incoming_letters'] = $MapFILs($IL['forward_incoming_letters'] ?? []);
             }
         }
-        return response($IL);
+        return $IL;
     }
 
     private static function AddEditNewLetterRule(): array
