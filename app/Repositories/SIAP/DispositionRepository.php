@@ -190,9 +190,16 @@ trait DispositionRepository
                 "message" => "failed update letter, has been complete.",
             ];
         }
+        $C = Category::where(['name' => trim($body['cat_name']), 'type' => 1])->first();
+        if (is_null($C)) {
+            $C = Category::create([
+                'name' => trim($body['cat_name']),
+                'type' => 1, // Disposition Categories
+            ]);
+        }
         $IL->update([
             'user_id' => $body["user_id"],
-            'cat_id' => $body["cat_id"],
+            'cat_id' => $C->id ?? 0,
             'title' => $body["title"],
             'from' => $body["from"],
             'dateline' => $body["dateline"],
