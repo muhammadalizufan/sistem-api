@@ -10,7 +10,7 @@ class Category extends Model
     /**
      * Specific Connection.
      *
-     * @var TableName
+     * @var Connection
      */
     protected $connection = 'siap';
 
@@ -35,6 +35,7 @@ class Category extends Model
      */
     protected $fillable = [
         'name',
+        'type',
     ];
 
     /**

@@ -10,7 +10,7 @@ class TagIncomingLetter extends Model
     /**
      * Specific Connection.
      *
-     * @var TableName
+     * @var Connection
      */
     protected $connection = 'siap';
 

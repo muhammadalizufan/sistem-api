@@ -10,7 +10,7 @@ class RolePermission extends Model
     /**
      * Specific Connection.
      *
-     * @var TableName
+     * @var Connection
      */
     protected $connection = 'account';
 
