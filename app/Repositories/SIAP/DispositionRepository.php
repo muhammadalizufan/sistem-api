@@ -4,6 +4,7 @@ namespace App\Repositories\SIAP;
 use App\Libs\Helpers;
 use App\Models\Account\Permission;
 use App\Models\Account\UserPermission;
+use App\Models\SIAP\Category;
 use App\Models\SIAP\ForwardIncomingLetter;
 use App\Models\SIAP\IncomingLetter;
 use App\Models\SIAP\Tag;
@@ -47,10 +48,17 @@ trait DispositionRepository
         }
         // Set Format Dateline
         $body = Helpers::ConvertDatelineBodyToDate($body);
+        $C = Category::where(['name' => trim($body['cat_name']), 'type' => 1])->first();
+        if (is_null($C)) {
+            $C = Category::create([
+                'name' => trim($body['cat_name']),
+                'type' => 1, // Disposition Categories
+            ]);
+        }
         // Insert Incoming Letter
         $IL = IncomingLetter::create([
             'user_id' => $body["user_id"],
-            'cat_id' => $body["cat_id"],
+            'cat_id' => $C->id ?? 0,
             'code' => $this->CodeUnique . time(),
             'title' => $body["title"],
             'from' => $body["from"],
