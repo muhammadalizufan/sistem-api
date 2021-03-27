@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\SIAP;
+namespace App\Models\Extension;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -12,7 +12,7 @@ class Category extends Model
      *
      * @var Connection
      */
-    protected $connection = 'siap';
+    protected $connection = 'extension';
 
     /**
      * Specific Table Name.
