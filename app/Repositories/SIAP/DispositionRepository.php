@@ -3,17 +3,26 @@ namespace App\Repositories\SIAP;
 
 use App\Libs\Helpers;
 use App\Models\Account\Permission;
+use App\Models\Account\User;
 use App\Models\Account\UserPermission;
+use App\Models\Extension\File;
 use App\Models\SIAP\Category;
 use App\Models\SIAP\ForwardIncomingLetter;
 use App\Models\SIAP\IncomingLetter;
 use App\Models\SIAP\Tag;
 use App\Models\SIAP\TagIncomingLetter;
+use App\Repositories\Extension\ExtensionRepository;
 use Carbon\Carbon;
 
 trait DispositionRepository
 {
     private $CodeUnique = "SIAP/SM/";
+    private $ExtRepo;
+
+    public function __construct()
+    {
+        $this->ExtRepo = new ExtensionRepository;
+    }
 
     // check user has add permission on desposition.add
     public function AddNewLetter(array $body = []): array
@@ -46,8 +55,11 @@ trait DispositionRepository
                 "message" => "failed add new letter, user with role is empty",
             ];
         }
+
         // Set Format Dateline
         $body = Helpers::ConvertDatelineBodyToDate($body);
+
+        // Create When Category Not Found
         $C = Category::where(['name' => trim($body['cat_name']), 'type' => 1])->first();
         if (is_null($C)) {
             $C = Category::create([
@@ -55,6 +67,7 @@ trait DispositionRepository
                 'type' => 1, // Disposition Categories
             ]);
         }
+
         // Insert Incoming Letter
         $IL = IncomingLetter::create([
             'user_id' => $body["user_id"],
@@ -76,6 +89,30 @@ trait DispositionRepository
                 "message" => "failed add new letter",
             ];
         }
+
+        // Add User Activity
+        $AA = $this->ExtRepo->AddActivity([
+            'user_id' => $body['user_id'],
+            'ref_type' => 1,
+            'ref_id' => $IL->id,
+            'action' => "AddDisposition",
+            'message_id' => "Menambahkan surat disposisi baru",
+            'message_en' => "Adding a new disposition letter",
+        ]);
+        if (!$AA['status']) {
+            return [
+                "status" => false,
+                "message" => $AA['message'],
+            ];
+        }
+
+        // Update Reference ID Files table
+        $F = File::find($body['file_id']);
+        $F->update([
+            'ref_id' => $IL->id,
+        ]);
+
+        // Insert Tags When Tag Not Found
         if (count($body['tags']) > 0) {
             foreach ($body['tags'] as $tag) {
                 $T = Tag::where('name', trim($tag));
@@ -175,6 +212,7 @@ trait DispositionRepository
         }
         // Set Format Dateline
         $body = Helpers::ConvertDatelineBodyToDate($body);
+
         // Update Incoming Letter
         $IL = IncomingLetter::find($body['incoming_letter_id']);
         if (!is_object($IL)) {
@@ -207,6 +245,29 @@ trait DispositionRepository
             'desc' => $body["desc"],
             'note' => $body["note"],
         ]);
+
+        // Add User Activity
+        $AA = $this->ExtRepo->AddActivity([
+            'user_id' => $body['user_id'],
+            'ref_type' => 1,
+            'ref_id' => $body['incoming_letter_id'],
+            'action' => "EditDisposition",
+            'message_id' => "Merubah surat disposisi",
+            'message_en' => "Editing a disposition letter",
+        ]);
+        if (!$AA['status']) {
+            return [
+                "status" => false,
+                "message" => $AA['message'],
+            ];
+        }
+
+        // Update Reference ID Files table
+        $F = File::find($body['file_id']);
+        $F->update([
+            'ref_id' => $IL->id,
+        ]);
+
         // Add Or Restore Forward Incoming Letter Responder
         foreach ($ResponderUIDs as $id) {
             $FIL = ForwardIncomingLetter::withTrashed()
@@ -257,6 +318,25 @@ trait DispositionRepository
                 "message" => "failed comment letter",
             ];
         }
+
+        if (is_null($FIL->comment)) {
+            // Add User Activity
+            $AA = $this->ExtRepo->AddActivity([
+                'user_id' => $body['user_id'],
+                'ref_type' => 1,
+                'ref_id' => $FIL->incoming_letter_id,
+                'action' => "EditCommentDisposition",
+                'message_id' => "Mengomentari surat disposisi",
+                'message_en' => "Comment on disposition letter",
+            ]);
+            if (!$AA['status']) {
+                return [
+                    "status" => false,
+                    "message" => $AA['message'],
+                ];
+            }
+        }
+
         $FIL->update([
             'comment' => $body['comment'],
         ]);
@@ -294,6 +374,22 @@ trait DispositionRepository
         $IL->update([
             'status' => 1,
         ]);
+        $U = User::find($GetUserID);
+        // Add User Activity
+        $AA = $this->ExtRepo->AddActivity([
+            'user_id' => $body['user_id'],
+            'ref_type' => 1,
+            'ref_id' => $FIL->incoming_letter_id,
+            'action' => "SendDisposition",
+            'message_id' => "Mengirim surat disposisi ke " . ($U->name ?? ""),
+            'message_en' => "Send a disposition letter to " . ($U->name ?? ""),
+        ]);
+        if (!$AA['status']) {
+            return [
+                "status" => false,
+                "message" => $AA['message'],
+            ];
+        }
         return [
             "status" => true,
         ];
