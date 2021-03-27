@@ -148,4 +148,14 @@ class Helpers
         }
         return $body;
     }
+    /**
+     * Generate Random String.
+     *
+     * @return static
+     */
+    public static function QuickRandom($length = 16): string
+    {
+        $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        return substr(str_shuffle(str_repeat($pool, 5)), 0, $length);
+    }
 }

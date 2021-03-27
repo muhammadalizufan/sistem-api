@@ -35,6 +35,8 @@ $router->group(["prefix" => "api"], function () use ($router) {
         $router->group(["namespace" => "Auth"], function () use ($router) {
             $router->get("permissions", "PermissionController@GetAllPermissionRawHandler");
             $router->get("list-permissions", "PermissionController@GetAllPermissionHandler");
+
+            // Test Only
             $router->get("update-permissions", "PermissionController@UpdatePermissionHandler");
             $router->get("test-add-group-role", function () {
                 if (is_object(Group::where("name", trim("Super Admin"))->first())) {
@@ -144,6 +146,7 @@ $router->group(["prefix" => "api"], function () use ($router) {
                 UserPermission::insert($A->toArray());
                 return response("OK");
             });
+            // Test Only
 
             $router->group(["prefix" => "auth"], function () use ($router) {
                 $router->post("login", "LoginController@Handler");
