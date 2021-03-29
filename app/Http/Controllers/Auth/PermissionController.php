@@ -40,46 +40,24 @@ class PermissionController extends Controller
 
         $Array = collect([]);
         foreach ($P as $key => $p) {
-            // $Array->push($p['value']);
             Helpers::IterationPermissionChild($Array, $p['child']);
         }
 
-        $AP = Permission::all()->map(function ($i) {
-            return $i['name'];
-        });
-        if (count($AP) <= 0) {
-            foreach ($Array->toArray() as $p) {
-                $P = new Permission();
-                $P->fill([
-                    'name' => trim($p),
-                    "is_active" => 1,
+        $P = $Array->toArray();
+        if (count($P) > 0) {
+            foreach ($P as $permission) {
+                Permission::updateOrCreate([
+                    'name' => $permission,
+                    'is_active' => 1,
                 ]);
-                $P->save();
             }
-
             return response([
                 "message" => "success import new permission",
             ], 200);
         }
 
-        $NotEqualPermission = $AP->toBase()->diff($Array->toArray());
-        if (count($NotEqualPermission) >= 0) {
-            return response([
-                "message" => "import a nothing permission",
-            ], 200);
-        }
-
-        foreach ($NotEqualPermission as $nep) {
-            $P = new Permission();
-            $P->fill([
-                'name' => trim($nep),
-                "is_active" => 1,
-            ]);
-            $P->save();
-        }
-
         return response([
-            "message" => "success import new permission",
+            "message" => "import a nothing permission",
         ], 200);
     }
 }

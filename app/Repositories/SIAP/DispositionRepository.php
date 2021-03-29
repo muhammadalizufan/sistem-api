@@ -5,8 +5,8 @@ use App\Libs\Helpers;
 use App\Models\Account\Permission;
 use App\Models\Account\User;
 use App\Models\Account\UserPermission;
+use App\Models\Extension\Category;
 use App\Models\Extension\File;
-use App\Models\SIAP\Category;
 use App\Models\SIAP\ForwardIncomingLetter;
 use App\Models\SIAP\IncomingLetter;
 use App\Models\SIAP\Tag;
@@ -288,14 +288,9 @@ trait DispositionRepository
         }
         // Delete Forward Incoming Letter
         $FIL = ForwardIncomingLetter::where('incoming_letter_id', $body['incoming_letter_id'])
-            ->whereNotIn('user_id', $ResponderUIDs)
-            ->delete();
-        if (!$FIL) {
-            return [
-                "status" => false,
-                "message" => "failed update letter",
-            ];
-        }
+            ->whereNotIn('user_id', \array_merge($ResponderUIDs, [
+                $body['user_id'], $DecisionUID,
+            ]))->delete();
         return [
             "status" => true,
         ];

@@ -8,6 +8,22 @@
                 "value": "SIAP.Disposition",
                 "child": [
                     {
+                        "title": "Level 1",
+                        "value": "SIAP.Disposition.Level.1"
+                    },
+                    {
+                        "title": "Level 2",
+                        "value": "SIAP.Disposition.Level.2"
+                    },
+                    {
+                        "title": "Level 3",
+                        "value": "SIAP.Disposition.Level.3"
+                    },
+                    {
+                        "title": "Level 4",
+                        "value": "SIAP.Disposition.Level.4"
+                    },
+                    {
                         "title": "View / Search",
                         "value": "SIAP.Disposition.ViewSearch"
                     },

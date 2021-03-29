@@ -2,6 +2,8 @@
 namespace App\Http\Controllers\SIAP;
 
 use App\Http\Controllers\Controller;
+use App\Models\Account\Permission;
+use App\Models\Account\UserPermission;
 use App\Models\SIAP\ForwardIncomingLetter;
 use App\Models\SIAP\IncomingLetter;
 use App\Repositories\SIAP\SIAPRepository;
@@ -22,9 +24,43 @@ class DispositionController extends Controller
         $this->SIAPRepository = new SIAPRepository;
     }
 
+    public function GetDisposistionResponders(Request $r, ?int $level = null)
+    {
+        $P = new Permission;
+        $UP = UserPermission::with("Role");
+
+        if (is_null($level)) {
+            $PID = $P->where("name", "SIAP.Disposition.Responders")->first()->id ?? 0;
+            $UP = $UP->where("permission_id", $PID)->select("role_id")->distinct("role_id")->get();
+        } else {
+            $PID = $P->where("name", "SIAP.Disposition.Level.$level")->first()->id ?? 0;
+            $UP = $UP->where("permission_id", $PID)->select("role_id")->distinct("role_id")->get();
+        }
+
+        return $UP->map(function ($i) {
+            return [
+                "id" => $i['role_id'],
+                "name" => $i['role']['name'],
+            ];
+        });
+    }
+
     public function GetInboxHandler(Request $r, ?int $id = null)
     {
-        $IL = ForwardIncomingLetter::with("IncomingLetter", "User", "Tags");
+        $IL = ForwardIncomingLetter::with([
+            "IncomingLetter" => function ($q) use ($id) {
+                if (!is_null($id)) {
+                    $q->with([
+                        'ForwardIncomingLetters' => function ($qTwo) {
+                            $qTwo->where('types', 2);
+                        },
+                        "File",
+                    ]);
+                }
+            },
+            "User",
+            "Tags",
+        ]);
 
         $IL = $IL->whereHas("IncomingLetter", function ($q) use ($r) {
             if ($r->has("status") && !empty($r->input("status"))) {
@@ -33,6 +69,7 @@ class DispositionController extends Controller
             $q->where("is_archive", 0);
         });
 
+        // Remove Receive Letter
         if (is_object($r->UserData)) {
             $UID = $r->UserData->id;
             $IL = $IL->where("user_id", $UID);
@@ -40,6 +77,8 @@ class DispositionController extends Controller
                 $IL = $IL->where("types", "!=", 3);
             }
         }
+
+        //  Map Payload Data Pagination
         if (is_null($id)) {
             $IL = collect($IL->paginate(20))->toArray();
             if (count($IL['data']) > 0) {
@@ -56,6 +95,14 @@ class DispositionController extends Controller
                 $IL = $IL->toArray();
                 $IL['tags'] = collect($IL['tags'])->map(function ($i) {
                     return $i['tag']['name'];
+                });
+                $IL['incoming_letter']['forward_incoming_letters'] = collect($IL['incoming_letter']['forward_incoming_letters'])->map(function ($i) {
+                    return [
+                        'role_id' => $i['user']['role']['role_id'],
+                        'role_name' => $i['user']['role']['role']['name'],
+                        'comment' => $i['comment'],
+                        'updated_at' => $i['updated_at'],
+                    ];
                 });
             }
         }

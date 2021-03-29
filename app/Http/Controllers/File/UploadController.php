@@ -39,7 +39,8 @@ class UploadController extends Controller
 
         return response([
             'id' => $F->id ?? 0,
-            'file' => $name,
+            'name' => $name,
+            'file' => $fullname,
             'url' => URL::to('/storage/' . $fullname),
         ]);
     }

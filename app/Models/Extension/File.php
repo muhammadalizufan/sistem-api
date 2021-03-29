@@ -4,6 +4,7 @@ namespace App\Models\Extension;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\URL;
 
 class File extends Model
 {
@@ -41,6 +42,20 @@ class File extends Model
         'ext',
         'path',
     ];
+
+    /**
+     * Custome appends attributes.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'url',
+    ];
+
+    public function getUrlAttribute()
+    {
+        return URL::to('/storage/' . $this->attributes['fullname']);
+    }
 
     /**
      * The attributes excluded from the model's JSON form.

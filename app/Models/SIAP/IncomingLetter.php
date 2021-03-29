@@ -3,6 +3,8 @@
 namespace App\Models\SIAP;
 
 use App\Models\Account\User;
+use App\Models\Extension\Category;
+use App\Models\Extension\File;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -89,7 +91,12 @@ class IncomingLetter extends Model
 
     public function ForwardIncomingLetters()
     {
-        return $this->hasMany(ForwardIncomingLetter::class, "incoming_letter_id", "id")->with("User");
+        return $this->hasMany(ForwardIncomingLetter::class, "incoming_letter_id", "id")->with("User.Role");
+    }
+
+    public function File()
+    {
+        return $this->hasOne(File::class, "fullname", "file")->select("id", "name", "fullname");
     }
 
     public function Category()

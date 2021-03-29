@@ -2,7 +2,7 @@
 namespace App\Http\Controllers\Extension;
 
 use App\Http\Controllers\Controller;
-use App\Models\SIAP\Category;
+use App\Models\Extension\Category;
 use Illuminate\Http\Request;
 
 class CategoryController extends Controller
