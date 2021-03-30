@@ -47,6 +47,11 @@ class DispositionController extends Controller
 
     public function GetInboxHandler(Request $r, ?int $id = null)
     {
+        $limit = 10;
+        if (\is_int($r->input('limit'))) {
+            $limit = $r->input('limit', 10);
+        }
+
         $IL = ForwardIncomingLetter::with([
             "IncomingLetter" => function ($q) use ($id) {
                 if (!is_null($id)) {
@@ -80,7 +85,7 @@ class DispositionController extends Controller
 
         //  Map Payload Data Pagination
         if (is_null($id)) {
-            $IL = collect($IL->paginate(20))->toArray();
+            $IL = collect($IL->paginate($limit))->toArray();
             if (count($IL['data']) > 0) {
                 $IL['data'] = collect($IL['data'])->map(function ($i) {
                     $i['tags'] = collect($i['tags'])->map(function ($i) {
@@ -111,6 +116,11 @@ class DispositionController extends Controller
 
     public function GetLetterHandler(Request $r, ?int $id = null)
     {
+        $limit = 10;
+        if (\is_int($r->input('limit'))) {
+            $limit = $r->input('limit', 10);
+        }
+
         $IL = IncomingLetter::with(["User", "Category", "ForwardIncomingLetters" => function ($q) use ($r) {
             $q->where("user_id", "!=", $r->UserData->id);
         }]);
@@ -132,7 +142,7 @@ class DispositionController extends Controller
         };
 
         if (is_null($id)) {
-            $IL = collect($IL->paginate(20))->toArray();
+            $IL = collect($IL->paginate($limit))->toArray();
             $IL['data'] = collect($IL['data'])->map(function ($i) use ($MapFILs) {
                 $i['forward_incoming_letters'] = $MapFILs($i['forward_incoming_letters'] ?? []);
                 return $i;

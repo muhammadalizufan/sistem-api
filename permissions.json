@@ -4,7 +4,33 @@
         "value": "SIAP",
         "child": [
             {
-                "title": "Disposition",
+                "title": "Surat Keluar",
+                "value": "SIAP.OutgoingLetter",
+                "child": [
+                    {
+                        "title": "View / Search",
+                        "value": "SIAP.OutgoingLetter.ViewSearch"
+                    },
+                    {
+                        "title": "Detail",
+                        "value": "SIAP.OutgoingLetter.ViewDetail"
+                    },
+                    {
+                        "title": "Add",
+                        "value": "SIAP.OutgoingLetter.Add"
+                    },
+                    {
+                        "title": "Edit",
+                        "value": "SIAP.OutgoingLetter.Edit"
+                    },
+                    {
+                        "title": "Approver",
+                        "value": "SIAP.OutgoingLetter.Approver"
+                    }
+                ]
+            },
+            {
+                "title": "Disposisi",
                 "value": "SIAP.Disposition",
                 "child": [
                     {

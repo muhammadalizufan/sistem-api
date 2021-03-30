@@ -158,4 +158,43 @@ class Helpers
         $pool = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         return substr(str_shuffle(str_repeat($pool, 5)), 0, $length);
     }
+    /**
+     * Remove Script Tag In HTML String.
+     *
+     * @return static
+     */
+    public static function RMScriptTagHTML(?string $html = null, bool $onlyBody = false): string
+    {
+        if (is_null($html)) {
+            return "";
+        }
+        $dom = new \DOMDocument();
+        $dom->loadHTML($html);
+        $script = $dom->getElementsByTagName('script');
+        $remove = [];
+        foreach ($script as $item) {
+            $remove[] = $item;
+        }
+        foreach ($remove as $item) {
+            $item->parentNode->removeChild($item);
+        };
+        if (!$onlyBody) {
+            $html = $dom->saveHTML();
+            return is_string($html) ? $html : "";
+        } else {
+            return self::GetContentHTML($dom);
+        }
+    }
+    /**
+     * Returns the normalized content.
+     *
+     * @since  3.0.0
+     *
+     * @return static HTML content
+     */
+    public static function GetContentHTML(\DOMDocument $dom): string
+    {
+        $body = $dom->saveHTML($dom->getElementsByTagName('body')->item(0));
+        return str_replace(array('<body>', '</body>'), '', $body);
+    }
 }

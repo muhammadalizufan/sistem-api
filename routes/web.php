@@ -126,14 +126,41 @@ $router->group(["prefix" => "api"], function () use ($router) {
         });
 
         $router->group(["namespace" => "SIAP", "prefix" => "siap", "middleware" => ["auth.private"]], function () use ($router) {
-            $router->group(["prefix" => "disposition"], function () use ($router) {
 
+            $router->group(["prefix" => "outgoingletter"], function () use ($router) {
+                $router->get("activities", [
+                    "permission" => "SIAP.OutgoingLetter.ViewDetail",
+                    "uses" => "OutgoingLetterController@GetOutgoingLetterActivityHandler",
+                ]);
+                $router->get("activity/{id:[0-9]+}", [
+                    "permission" => "SIAP.OutgoingLetter.ViewDetail",
+                    "uses" => "OutgoingLetterController@GetOutgoingLetterActivityHandler",
+                ]);
+                $router->get("inboxs", [
+                    "permission" => "SIAP.OutgoingLetter.ViewSearch",
+                    "uses" => "OutgoingLetterController@GetOutgoingLetterHandler",
+                ]);
+                $router->get("inbox/{id:[0-9]+}", [
+                    "permission" => "SIAP.OutgoingLetter.ViewDetail",
+                    "uses" => "OutgoingLetterController@GetOutgoingLetterHandler",
+                ]);
+                $router->post("add", [
+                    "permission" => "SIAP.OutgoingLetter.Add",
+                    "uses" => "OutgoingLetterController@AddNewLetterHandler",
+                ]);
+                $router->post("update/{id:[0-9]+}", [
+                    "permission" => "SIAP.OutgoingLetter.Edit",
+                    "uses" => "OutgoingLetterController@EditLetterHandler",
+                ]);
+            });
+
+            $router->group(["prefix" => "disposition"], function () use ($router) {
                 $router->get("inboxs", [
                     "permission" => "SIAP.Disposition.ViewSearch",
                     "uses" => "DispositionController@GetInboxHandler",
                 ]);
                 $router->get("inbox/{id:[0-9]+}", [
-                    "permission" => "SIAP.Disposition.ViewSearch",
+                    "permission" => "SIAP.Disposition.ViewDetail",
                     "uses" => "DispositionController@GetInboxHandler",
                 ]);
                 $router->get("responders", [
@@ -154,7 +181,7 @@ $router->group(["prefix" => "api"], function () use ($router) {
                     "uses" => "DispositionController@EditLetterHandler",
                 ]);
                 $router->post("comment/{id:[0-9]+}", [
-                    "permission" => "SIAP.Disposition.Comment",
+                    // "permission" => "SIAP.Disposition.Comment",
                     "uses" => "DispositionController@CommentLetterHandler",
                 ]);
                 $router->post("send/{id:[0-9]+}", [

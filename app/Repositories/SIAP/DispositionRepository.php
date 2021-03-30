@@ -16,14 +16,6 @@ use Carbon\Carbon;
 
 trait DispositionRepository
 {
-    private $CodeUnique = "SIAP/SM/";
-    private $ExtRepo;
-
-    public function __construct()
-    {
-        $this->ExtRepo = new ExtensionRepository;
-    }
-
     // check user has add permission on desposition.add
     public function AddNewLetter(array $body = []): array
     {
@@ -72,7 +64,7 @@ trait DispositionRepository
         $IL = IncomingLetter::create([
             'user_id' => $body["user_id"],
             'cat_id' => $C->id ?? 0,
-            'code' => $this->CodeUnique . time(),
+            'code' => "SIAP/SM/" . time(),
             'title' => $body["title"],
             'from' => $body["from"],
             'date' => Carbon::now(),
@@ -91,9 +83,9 @@ trait DispositionRepository
         }
 
         // Add User Activity
-        $AA = $this->ExtRepo->AddActivity([
+        $AA = (new ExtensionRepository())->AddActivity([
             'user_id' => $body['user_id'],
-            'ref_type' => 1,
+            'ref_type' => 1, // Disposition Letter
             'ref_id' => $IL->id,
             'action' => "AddDisposition",
             'message_id' => "Menambahkan surat disposisi baru",
@@ -247,7 +239,7 @@ trait DispositionRepository
         ]);
 
         // Add User Activity
-        $AA = $this->ExtRepo->AddActivity([
+        $AA = (new ExtensionRepository())->AddActivity([
             'user_id' => $body['user_id'],
             'ref_type' => 1,
             'ref_id' => $body['incoming_letter_id'],
@@ -316,7 +308,7 @@ trait DispositionRepository
 
         if (is_null($FIL->comment)) {
             // Add User Activity
-            $AA = $this->ExtRepo->AddActivity([
+            $AA = (new ExtensionRepository())->AddActivity([
                 'user_id' => $body['user_id'],
                 'ref_type' => 1,
                 'ref_id' => $FIL->incoming_letter_id,
@@ -371,7 +363,7 @@ trait DispositionRepository
         ]);
         $U = User::find($GetUserID);
         // Add User Activity
-        $AA = $this->ExtRepo->AddActivity([
+        $AA = (new ExtensionRepository())->AddActivity([
             'user_id' => $body['user_id'],
             'ref_type' => 1,
             'ref_id' => $FIL->incoming_letter_id,
