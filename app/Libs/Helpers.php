@@ -170,6 +170,7 @@ class Helpers
         }
         $dom = new \DOMDocument();
         $dom->loadHTML($html);
+        $dom->normalizeDocument();
         $script = $dom->getElementsByTagName('script');
         $remove = [];
         foreach ($script as $item) {
