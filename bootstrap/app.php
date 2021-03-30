@@ -78,6 +78,7 @@ $app->configure('queue');
 
 $app->middleware([
     Fruitcake\Cors\HandleCors::class,
+    App\Http\Middleware\CorsMiddleware::class,
     App\Http\Middleware\PermissionMiddleware::class,
 ]);
 
