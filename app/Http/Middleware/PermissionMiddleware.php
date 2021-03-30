@@ -14,10 +14,10 @@ class PermissionMiddleware
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle(Request $r, Closure $next)
+    public function handle(Request $request, Closure $next)
     {
-        $Method = $r->method();
-        $PathInfoOld = $r->getPathInfo();
+        $Method = $request->method();
+        $PathInfoOld = $request->getPathInfo();
         $RouteData = app()->router->getRoutes();
 
         $PathInfo = explode("/", $PathInfoOld);
@@ -25,7 +25,7 @@ class PermissionMiddleware
         $PathInfo = is_numeric($LastArray) ? substr_replace($PathInfoOld, "{id:[0-9]+}", strlen((string) $LastArray) * -1) : $PathInfoOld;
 
         $Permission = $RouteData[$Method . str_replace("//", "/", $PathInfo)]['action']['permission'] ?? false;
-        $r->request->add(["route_permission" => $Permission]);
-        return $next($r);
+        $request->request->add(["route_permission" => $Permission]);
+        return $next($request);
     }
 }
