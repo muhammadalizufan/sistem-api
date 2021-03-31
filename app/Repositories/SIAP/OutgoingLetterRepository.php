@@ -37,6 +37,7 @@ trait OutgoingLetterRepository
             'title' => $body['title'],
             'to' => $body['to'],
             'agency' => $body['agency'],
+            'address' => $body['address'],
             'original_letter' => $body['original_letter'],
             'validated_letter' => null,
             'note' => $body['note'],

@@ -42,6 +42,7 @@ class OutgoingLetter extends Model
         'title',
         'to',
         'agency',
+        'address',
         'original_letter',
         'validated_letter',
         'note',
