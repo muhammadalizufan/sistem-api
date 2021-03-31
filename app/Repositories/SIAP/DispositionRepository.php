@@ -119,7 +119,8 @@ trait DispositionRepository
                         ]);
                     }
                 } else {
-                    if (is_object($T->first())) {
+                    $T = $T->first();
+                    if (is_object($T)) {
                         TagIncomingLetter::create([
                             'incoming_letter_id' => $IL->id,
                             'tag_id' => $T->id,
