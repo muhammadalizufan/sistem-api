@@ -14,7 +14,9 @@ class AddAddressFieldToTableOutgoingLetters extends Migration
     public function up()
     {
         Schema::connection("siap")->table('outgoing_letters', function (Blueprint $table) {
-            $table->text("address")->nullable();
+            $table->after('agency', function ($table) {
+                $table->text("address")->nullable();
+            });
         });
     }
 
