@@ -297,6 +297,7 @@ class TestController extends Controller
             [
                 "group" => [
                     "name" => "Kabag",
+                    "permission" => null,
                 ],
                 "role" => [
                     "name" => "Kabag Keuangan",
@@ -344,34 +345,38 @@ class TestController extends Controller
                 'name' => $v['group']['name'],
                 'is_active' => 1,
             ]);
-            $Permissions = [];
-            foreach ($v['group']['permission'] as $p) {
-                \array_push($Permissions, [
-                    'group_id' => $G->id,
-                    'permission_id' => Permission::where(['name' => $p, 'is_active' => 1])->first()->id ?? 0,
-                    'is_active' => 1,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
-                ]);
+            if (!is_null($v['group']['permission'])) {
+                $Permissions = [];
+                foreach ($v['group']['permission'] as $p) {
+                    \array_push($Permissions, [
+                        'group_id' => $G->id,
+                        'permission_id' => Permission::where(['name' => $p, 'is_active' => 1])->first()->id ?? 0,
+                        'is_active' => 1,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]);
+                }
+                GroupPermission::insert($Permissions);
             }
-            GroupPermission::insert($Permissions);
 
             $R = Role::updateOrcreate([
                 'name' => $v['role']['name'],
                 'is_active' => 1,
             ]);
-            $Permissions = [];
-            foreach ($v['role']['permission'] as $p) {
-                \array_push($Permissions, [
-                    'group_id' => $G->id,
-                    'role_id' => $R->id,
-                    'permission_id' => Permission::where(['name' => $p, 'is_active' => 1])->first()->id ?? 0,
-                    'is_active' => 1,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
-                ]);
+            if (!is_null($v['role']['permission'])) {
+                $Permissions = [];
+                foreach ($v['role']['permission'] as $p) {
+                    \array_push($Permissions, [
+                        'group_id' => $G->id,
+                        'role_id' => $R->id,
+                        'permission_id' => Permission::where(['name' => $p, 'is_active' => 1])->first()->id ?? 0,
+                        'is_active' => 1,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]);
+                }
+                RolePermission::insert($Permissions);
             }
-            RolePermission::insert($Permissions);
 
             $U = User::updateOrcreate([
                 'name' => $v['user']['name'],
@@ -381,19 +386,21 @@ class TestController extends Controller
                 ]),
                 'status' => 1,
             ]);
-            $Permissions = [];
-            foreach ($v['user']['permission'] as $p) {
-                \array_push($Permissions, [
-                    'user_id' => $U->id,
-                    'role_id' => $R->id,
-                    'group_id' => $G->id,
-                    'permission_id' => Permission::where(['name' => $p, 'is_active' => 1])->first()->id ?? 0,
-                    'is_active' => 1,
-                    'created_at' => Carbon::now(),
-                    'updated_at' => Carbon::now(),
-                ]);
+            if (!is_null($v['user']['permission'])) {
+                $Permissions = [];
+                foreach ($v['user']['permission'] as $p) {
+                    \array_push($Permissions, [
+                        'user_id' => $U->id,
+                        'role_id' => $R->id,
+                        'group_id' => $G->id,
+                        'permission_id' => Permission::where(['name' => $p, 'is_active' => 1])->first()->id ?? 0,
+                        'is_active' => 1,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]);
+                }
+                UserPermission::insert($Permissions);
             }
-            UserPermission::insert($Permissions);
         }
         return response([
             "api_version" => "1.0",
