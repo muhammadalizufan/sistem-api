@@ -65,8 +65,6 @@ class OutgoingLetter extends Model
      * @var array
      */
     protected $hidden = [
-        'created_at',
-        'updated_at',
         'deleted_at',
     ];
 
