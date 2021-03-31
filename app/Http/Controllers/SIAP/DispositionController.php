@@ -54,14 +54,14 @@ class DispositionController extends Controller
 
         $IL = ForwardIncomingLetter::with([
             "IncomingLetter" => function ($q) use ($id) {
-                if (!is_null($id)) {
-                    $q->with([
-                        'ForwardIncomingLetters' => function ($qTwo) {
-                            $qTwo->where('types', 2);
-                        },
-                        "File",
-                    ]);
-                }
+                // if (!is_null($id)) {
+                //     $q->with([
+                //         'ForwardIncomingLetters' => function ($qTwo) {
+                //             $qTwo->where('types', 2);
+                //         },
+                //         "File",
+                //     ]);
+                // }
             },
             "User",
             "Tags",
