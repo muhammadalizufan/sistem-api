@@ -29,7 +29,7 @@ class TestController extends Controller
     public function AddTestDummy(Request $r)
     {
         $Array = [
-            [
+            0 => [
                 "group" => [
                     "name" => "Super Admin",
                     "permission" => [
@@ -119,7 +119,7 @@ class TestController extends Controller
                     ],
                 ],
             ],
-            [
+            1 => [
                 "group" => [
                     "name" => "Ketua",
                     "permission" => [
@@ -178,7 +178,7 @@ class TestController extends Controller
                     ],
                 ],
             ],
-            [
+            2 => [
                 "group" => [
                     "name" => "Sekretaris",
                     "permission" => [
@@ -238,7 +238,7 @@ class TestController extends Controller
                     ],
                 ],
             ],
-            [
+            3 => [
                 "group" => [
                     "name" => "Manajer",
                     "permission" => [
@@ -297,7 +297,7 @@ class TestController extends Controller
                     ],
                 ],
             ],
-            [
+            4 => [
                 "group" => [
                     "name" => "Kabag",
                     "permission" => [
@@ -356,7 +356,7 @@ class TestController extends Controller
                     ],
                 ],
             ],
-            [
+            5 => [
                 "group" => [
                     "name" => "Kabag",
                     "permission" => null,
