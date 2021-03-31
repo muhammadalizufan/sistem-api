@@ -126,7 +126,6 @@ $router->group(["prefix" => "api"], function () use ($router) {
         });
 
         $router->group(["namespace" => "SIAP", "prefix" => "siap", "middleware" => ["auth.private"]], function () use ($router) {
-
             $router->group(["prefix" => "outgoingletter"], function () use ($router) {
                 $router->get("activities", [
                     "permission" => "SIAP.OutgoingLetter.ViewDetail",
