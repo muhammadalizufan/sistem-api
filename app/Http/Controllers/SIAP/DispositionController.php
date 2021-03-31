@@ -53,7 +53,7 @@ class DispositionController extends Controller
         }
 
         $IL = ForwardIncomingLetter::with([
-            "IncomingLetter" => function ($q) use ($id) {
+            "IncomingLetter" => function ($q) {
                 $q->with(['ForwardIncomingLetters' => function ($qTwo) {
                     $qTwo->where('types', 2);
                 }, "File"]);
@@ -90,7 +90,7 @@ class DispositionController extends Controller
                 });
             }
         } else {
-            $IL = $IL->first();
+            $IL = $IL->where('id', $id)->first();
             if (is_object($IL)) {
                 $IL = $IL->toArray();
                 $IL['tags'] = collect($IL['tags'])->map(function ($i) {
