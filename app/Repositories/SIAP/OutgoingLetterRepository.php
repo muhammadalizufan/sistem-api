@@ -158,19 +158,15 @@ trait OutgoingLetterRepository
         $MsgENSecond = "Make changes to outgoing mail";
 
         if (!is_null($OldValidatedLetter)) {
-            // if validated letter edited and original doesnt edited
             if ($compareString >= 0) {
                 $CreateActivity($MsgIDFirst, $MsgENFirst);
             } else {
-                // if original letter edited
                 $CreateActivity($MsgIDSecond, $MsgENSecond);
             }
         } else {
-            // if validated letter edited and original doesnt edited
             if ($compareString > 0) {
                 $CreateActivity($MsgIDFirst, $MsgENFirst);
             }
-            // if original letter edited
             if ($compareString < 0) {
                 $CreateActivity($MsgIDSecond, $MsgENSecond);
             }

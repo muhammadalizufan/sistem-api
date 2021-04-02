@@ -52,13 +52,10 @@ trait DispositionRepository
         $body = Helpers::ConvertDatelineBodyToDate($body);
 
         // Create When Category Not Found
-        $C = Category::where(['name' => trim($body['cat_name']), 'type' => 1])->first();
-        if (is_null($C)) {
-            $C = Category::create([
-                'name' => trim($body['cat_name']),
-                'type' => 1, // Disposition Categories
-            ]);
-        }
+        $C = Category::updateOrcreate([
+            'name' => trim($body['cat_name']),
+            'type' => 1, // Disposition Categories
+        ]);
 
         // Insert Incoming Letter
         $IL = IncomingLetter::create([
@@ -221,13 +218,12 @@ trait DispositionRepository
                 "message" => "failed update letter, has been complete.",
             ];
         }
-        $C = Category::where(['name' => trim($body['cat_name']), 'type' => 1])->first();
-        if (is_null($C)) {
-            $C = Category::create([
-                'name' => trim($body['cat_name']),
-                'type' => 1, // Disposition Categories
-            ]);
-        }
+
+        $C = Category::updateOrcreate([
+            'name' => trim($body['cat_name']),
+            'type' => 1, // Disposition Categories
+        ]);
+
         $IL->update([
             'user_id' => $body["user_id"],
             'cat_id' => $C->id ?? 0,

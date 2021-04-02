@@ -88,6 +88,7 @@ class DispositionController extends Controller
                     });
                     $i['incoming_letter']['forward_incoming_letters'] = collect($i['incoming_letter']['forward_incoming_letters'])->map(function ($i) {
                         return [
+                            'id' => $i['id'],
                             'role_id' => $i['user']['role']['role_id'],
                             'role_name' => $i['user']['role']['role']['name'],
                             'comment' => $i['comment'],
@@ -106,6 +107,7 @@ class DispositionController extends Controller
                 });
                 $IL['incoming_letter']['forward_incoming_letters'] = collect($IL['incoming_letter']['forward_incoming_letters'])->map(function ($i) {
                     return [
+                        'id' => $i['id'],
                         'role_id' => $i['user']['role']['role_id'],
                         'role_name' => $i['user']['role']['role']['name'],
                         'comment' => $i['comment'],
