@@ -126,9 +126,11 @@ class DispositionController extends Controller
             $limit = $r->input('limit', 10);
         }
 
-        $IL = IncomingLetter::with(["User", "Category", "ForwardIncomingLetters" => function ($q) use ($r) {
-            $q->where("user_id", "!=", $r->UserData->id);
-        }]);
+        $IL = IncomingLetter::with(["User", "Category", "ForwardIncomingLetters"]);
+
+        // => function ($q) use ($r) {
+        // $q->where("user_id", "!=", $r->UserData->id);
+        // }
 
         if ($r->has("status") && !empty($r->input("status"))) {
             $IL = $IL->where("status", $r->input("status", 0));
@@ -140,6 +142,7 @@ class DispositionController extends Controller
                 return [
                     "user" => $i['user'],
                     "comment" => $i['comment'],
+                    "types" => $i['reciver_type'],
                     'created_at' => $i['created_at'],
                     'updated_at' => $i['updated_at'],
                 ];

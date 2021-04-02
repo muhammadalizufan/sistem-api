@@ -180,7 +180,7 @@ $router->group(["prefix" => "api"], function () use ($router) {
                     "uses" => "DispositionController@EditLetterHandler",
                 ]);
                 $router->post("comment/{id:[0-9]+}", [
-                    // "permission" => "SIAP.Disposition.Comment",
+                    "permission" => "SIAP.Disposition.Comment",
                     "uses" => "DispositionController@CommentLetterHandler",
                 ]);
                 $router->post("send/{id:[0-9]+}", [
