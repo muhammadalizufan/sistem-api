@@ -142,7 +142,7 @@ class DispositionController extends Controller
                 return [
                     "user" => $i['user'],
                     "comment" => $i['comment'],
-                    "types" => $i['reciver_type'],
+                    "reciver_type" => $i['reciver_type'],
                     'created_at' => $i['created_at'],
                     'updated_at' => $i['updated_at'],
                 ];
