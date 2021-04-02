@@ -54,8 +54,10 @@ class DispositionController extends Controller
 
         $IL = ForwardIncomingLetter::with([
             "IncomingLetter" => function ($q) {
-                $q->with(['ForwardIncomingLetters' => function ($qTwo) {
-                    // $qTwo->where('types', 2);
+                $q->with(['Responders' => function ($qTwo) {
+                    $qTwo->where('types', 2);
+                }, 'Decisions' => function ($qTwo) {
+                    $qTwo->where('types', 1);
                 }, "File"]);
             },
             "User",
@@ -86,7 +88,16 @@ class DispositionController extends Controller
                     $i['tags'] = collect($i['tags'])->map(function ($i) {
                         return $i['tag']['name'];
                     });
-                    $i['incoming_letter']['forward_incoming_letters'] = collect($i['incoming_letter']['forward_incoming_letters'])->map(function ($i) {
+                    if (!is_null($i['incoming_letter']['decisions'])) {
+                        $i['incoming_letter']['decisions'] = [
+                            'id' => $i['incoming_letter']['decisions']['id'],
+                            'role_id' => $i['incoming_letter']['decisions']['user']['role']['role_id'],
+                            'role_name' => $i['incoming_letter']['decisions']['user']['role']['role']['name'],
+                            'comment' => $i['incoming_letter']['decisions']['comment'],
+                            'updated_at' => $i['incoming_letter']['decisions']['updated_at'],
+                        ];
+                    }
+                    $i['incoming_letter']['responders'] = collect($i['incoming_letter']['responders'])->map(function ($i) {
                         return [
                             'id' => $i['id'],
                             'role_id' => $i['user']['role']['role_id'],
@@ -105,7 +116,14 @@ class DispositionController extends Controller
                 $IL['tags'] = collect($IL['tags'])->map(function ($i) {
                     return $i['tag']['name'];
                 });
-                $IL['incoming_letter']['forward_incoming_letters'] = collect($IL['incoming_letter']['forward_incoming_letters'])->map(function ($i) {
+                $IL['incoming_letter']['decisions'] = [
+                    'id' => $IL['incoming_letter']['decisions']['id'],
+                    'role_id' => $IL['incoming_letter']['decisions']['user']['role']['role_id'],
+                    'role_name' => $IL['incoming_letter']['decisions']['user']['role']['role']['name'],
+                    'comment' => $IL['incoming_letter']['decisions']['comment'],
+                    'updated_at' => $IL['incoming_letter']['decisions']['updated_at'],
+                ];
+                $IL['incoming_letter']['responders'] = collect($IL['incoming_letter']['responders'])->map(function ($i) {
                     return [
                         'id' => $i['id'],
                         'role_id' => $i['user']['role']['role_id'],

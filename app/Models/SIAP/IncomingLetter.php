@@ -89,9 +89,14 @@ class IncomingLetter extends Model
         }
     }
 
-    public function ForwardIncomingLetters()
+    public function Responders()
     {
         return $this->hasMany(ForwardIncomingLetter::class, "incoming_letter_id", "id")->with("User.Role");
+    }
+
+    public function Decisions()
+    {
+        return $this->hasOne(ForwardIncomingLetter::class, "incoming_letter_id", "id")->with("User.Role");
     }
 
     public function File()
