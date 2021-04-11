@@ -22,11 +22,13 @@ class CreateIncomingLettersTable extends Migration
             $table->string("from")->default("");
             $table->timestamp("date");
             $table->timestamp("dateline");
-            $table->text("file")->nullable();
+            $table->bigInteger("file_id")->default(0)->index()->comment("This field related to table files");
+            $table->string("tags")->default("")->index();
             $table->text("desc")->nullable();
             $table->text("note")->nullable();
             $table->tinyInteger("status")->default(0)->comment("0 = Procces; 1 = Success; 2 = Failed;");
             $table->boolean("is_archive")->default(0);
+            $table->boolean("private")->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

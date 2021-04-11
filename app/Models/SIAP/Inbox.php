@@ -2,10 +2,11 @@
 
 namespace App\Models\SIAP;
 
+use App\Models\Account\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class TagIncomingLetter extends Model
+class Inbox extends Model
 {
     /**
      * Specific Connection.
@@ -19,7 +20,7 @@ class TagIncomingLetter extends Model
      *
      * @var TableName
      */
-    protected $table = 'tag_incoming_letters';
+    protected $table = 'inboxs';
 
     /**
      * Activate a Soft Delete.
@@ -34,9 +35,25 @@ class TagIncomingLetter extends Model
      * @var array
      */
     protected $fillable = [
-        'incoming_letter_id',
-        'tag_id',
+        'ref_id',
+        'ref_type',
+        'forward_to',
+        'user_type',
     ];
+
+    /**
+     * Custome appends attributes.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'types',
+    ];
+
+    public function getTypesAttribute()
+    {
+        return explode(",", $this->attributes['user_type']) ?? [];
+    }
 
     /**
      * The attributes excluded from the model's JSON form.
@@ -44,14 +61,16 @@ class TagIncomingLetter extends Model
      * @var array
      */
     protected $hidden = [
-        'created_at',
-        'updated_at',
         'deleted_at',
     ];
 
-    public function Tag()
+    public function Disposition()
     {
-        return $this->hasOne(Tag::class, "id", "tag_id")->select('id', 'name');
+        return $this->hasOne(IncomingLetter::class, "id", "ref_id")->with("Category", "File");
     }
 
+    public function User()
+    {
+        return $this->hasOne(User::class, "id", "forward_to")->select('id', 'name')->with("Role");
+    }
 }

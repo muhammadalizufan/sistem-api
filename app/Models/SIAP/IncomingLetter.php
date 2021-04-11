@@ -2,7 +2,6 @@
 
 namespace App\Models\SIAP;
 
-use App\Models\Account\User;
 use App\Models\Extension\Category;
 use App\Models\Extension\File;
 use Illuminate\Database\Eloquent\Model;
@@ -44,9 +43,11 @@ class IncomingLetter extends Model
         'from',
         'date',
         'dateline',
-        'file',
+        'file_id',
         'desc',
         'note',
+        'tags',
+        'private',
         'status',
         'is_archive',
     ];
@@ -57,6 +58,7 @@ class IncomingLetter extends Model
      * @var array
      */
     protected $appends = [
+        'tags',
         'status_letter',
     ];
 
@@ -70,6 +72,11 @@ class IncomingLetter extends Model
         'updated_at',
         'deleted_at',
     ];
+
+    public function getTagsAttribute()
+    {
+        return Tag::whereIn('id', explode(',', $this->attributes['tags'] ?? ""))->get()->toArray() ?? null;
+    }
 
     public function getStatusLetterAttribute()
     {
@@ -89,28 +96,13 @@ class IncomingLetter extends Model
         }
     }
 
-    public function Responders()
-    {
-        return $this->hasMany(ForwardIncomingLetter::class, "incoming_letter_id", "id")->with("User.Role");
-    }
-
-    public function Decisions()
-    {
-        return $this->hasOne(ForwardIncomingLetter::class, "incoming_letter_id", "id")->with("User.Role");
-    }
-
     public function File()
     {
-        return $this->hasOne(File::class, "fullname", "file")->select("id", "name", "fullname");
+        return $this->hasOne(File::class, "id", "file_id")->select("id", "name", "fullname", "created_at", "updated_at");
     }
 
     public function Category()
     {
         return $this->hasOne(Category::class, "id", "cat_id")->select('id', 'name');
-    }
-
-    public function User()
-    {
-        return $this->hasOne(User::class, "id", "user_id")->select('id', 'name');
     }
 }
