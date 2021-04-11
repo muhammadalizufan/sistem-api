@@ -100,23 +100,26 @@ trait DispositionRepository
         }
         $Data = collect([]);
 
-        foreach (array_unique(array_merge($r->users_responders, $SPVs, [$r->UserData->id, $r->users_decision])) as $uid) {
+        foreach (array_unique(array_merge($r->user_responders, $r->user_supervisors, $SPVs, [$r->UserData->id, $r->user_decision])) as $uid) {
             $Type = ["Administator", "Decision", "Responder", "Supervisor"];
             $UTypeArr = collect([]);
+
             if ($uid == $r->UserData->id) {
                 $UTypeArr->push($Type[0]);
             }
-            if ($uid == $r->users_decision) {
+
+            if ($uid == $r->user_decision) {
                 $UTypeArr->push($Type[1]);
             }
-            if (in_array($uid, $r->users_responders)) {
+
+            if (in_array($uid, $r->user_responders)) {
                 $UTypeArr->push($Type[2]);
             }
-            if (!$r->private) {
-                if (in_array($uid, $SPVs)) {
-                    $UTypeArr->push($Type[3]);
-                }
+
+            if (in_array($uid, array_merge($r->user_supervisors, $SPVs))) {
+                $UTypeArr->push($Type[3]);
             }
+
             $Data->push(
                 $AddDate([
                     'ref_id' => $IL->id,
@@ -131,6 +134,7 @@ trait DispositionRepository
             IncomingLetter::where('id', $IL->id)->forceDelete();
             return false;
         }
+
         if (!Comment::insert(
             $Data->map(function ($i) use ($AddDate) {
                 $valid = false;
@@ -227,62 +231,48 @@ trait DispositionRepository
             'ref_type' => "Disposition",
         ];
 
-        $SPVs = [];
-        if (!$r->private) {
-            $PIDs = Permission::whereIn("name", ["SIAP.Disposition.Level.A", "SIAP.Disposition.Level.B"])->get()->map(function ($i) {
-                return $i['id'];
-            })->toArray();
-            $SPVs = UserPermission::whereIn("permission_id", $PIDs)->where("is_active", 1)->get()->map(function ($i) {
-                return $i['user_id'];
-            })->toArray();
-        }
-
-        $AllUser = array_unique(array_merge($r->users_responders, $SPVs, [$r->UserData->id, $r->users_decision]));
-
+        $AllUser = array_unique(array_merge($r->user_responders, $r->user_supervisors, [$r->user_decision]));
         $OldUIDs = Inbox::where($Clause)->get()->map(function ($i) {
             return $i['forward_to'];
         })->toArray();
 
-        $DeleteUser = collect(array_unique($OldUIDs))->map(function ($OldID) use ($AllUser) {
-            return !in_array($OldID, $AllUser) ? $OldID : null;
-        })->filter(function ($v) {
-            return !is_null($v);
-        })->toArray();
+        $DeleteUser = collect([]);
+        foreach (array_unique($OldUIDs) as $olduid) {
+            if (!in_array($olduid, $AllUser)) {
+                $DeleteUser->push($olduid);
+            }
+        }
+        $DeleteUser = $DeleteUser->toArray();
+
+        $CreateComment = function ($uid) use ($Clause) {
+            $C = Comment::onlyTrashed()->where(array_merge($Clause, [
+                'created_by' => $uid,
+            ]));
+            if (is_null($C->first())) {
+                Comment::create(array_merge($Clause, [
+                    'created_by' => $uid,
+                    'comment' => null,
+                ]));
+            } else {
+                $C->update([
+                    'comment' => null,
+                ]);
+                $C->restore();
+            }
+        };
 
         foreach ($AllUser as $uid) {
-            $Type = ["Administator", "Decision", "Responder", "Supervisor"];
+            $Type = ["Decision", "Responder", "Supervisor"];
             $UTypeArr = collect([]);
-            if ($uid == $r->UserData->id) {
+            if ($uid == $r->user_decision) {
                 $UTypeArr->push($Type[0]);
             }
-            if ($uid == $r->users_decision) {
+            if (in_array($uid, $r->user_responders)) {
                 $UTypeArr->push($Type[1]);
             }
-            if (in_array($uid, $r->users_responders)) {
+            if (in_array($uid, $r->user_supervisors)) {
                 $UTypeArr->push($Type[2]);
             }
-            if (!$r->private) {
-                if (in_array($uid, $SPVs)) {
-                    $UTypeArr->push($Type[3]);
-                }
-            }
-
-            $CreateComment = function ($uid) use ($Clause) {
-                $C = Comment::onlyTrashed()->where(array_merge($Clause, [
-                    'created_by' => $uid,
-                ]));
-                if (is_object($C->first())) {
-                    Comment::create(array_merge($Clause, [
-                        'created_by' => $uid,
-                        'comment' => null,
-                    ]));
-                } else {
-                    $C->update([
-                        'comment' => null,
-                    ]);
-                    $C->restore();
-                }
-            };
 
             $I = Inbox::onlyTrashed()->where(array_merge($Clause, [
                 'forward_to' => $uid,

@@ -39,12 +39,12 @@ trait OutgoingLetterRepository
             'original_letter',
             'validated_letter',
             'note',
-        ])), [
+        ]), [
             'cat_id' => $C->id ?? 0,
             'code' => "SIAP/SK/" . time(),
             'status' => 0,
             'is_archive' => 0,
-        ]);
+        ]));
         if (!is_object($OL)) {
             return false;
         }
@@ -98,14 +98,10 @@ trait OutgoingLetterRepository
         $UP = UserPermission::where(["user_id" => $r->UserData->id, "permission_id" => $PID, "is_active" => 1])->first();
 
         if (is_object($UP)) {
-            $C = Category::updateOrcreate([
-                'name' => trim($r->input('cat_name', '')),
-            ]);
             $Update = array_merge($r->all([
-                'validated_letter',
                 'note',
+                'validated_letter',
             ]), [
-                'cat_id' => $C->id ?? 0,
                 'status' => $status,
             ]);
             $CreateActivity("Melakukan validasi surat keluar", "Perform outgoing mail validation");
@@ -114,14 +110,17 @@ trait OutgoingLetterRepository
                 $CreateActivity("Merubah status surat keluar menjadi {$TMsg}", "Change the outgoing mail status to {$TMsgEn}");
             }
         } else {
+            $C = Category::updateOrcreate([
+                'name' => trim($r->input('cat_name', '')),
+            ]);
             $Update = array_merge($r->all([
-                'title',
                 'to',
+                'title',
                 'agency',
                 'address',
                 'original_letter',
             ]), [
-                'status' => 0,
+                'cat_id' => $C->id ?? 0,
             ]);
             $CreateActivity("Melakukan perubahan surat keluar", "Make changes to outgoing mail");
         }

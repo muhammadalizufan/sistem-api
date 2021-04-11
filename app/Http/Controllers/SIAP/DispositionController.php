@@ -189,9 +189,28 @@ class DispositionController extends Controller
         return $Payload;
     }
 
-    private static function AddEditNewLetterRule(): array
+    private static function AddEditNewLetterRule(Request $r = null, bool $isEdit = false): array
     {
-        return [
+        $PIDs = Permission::whereIn("name", [
+            "SIAP.Disposition.Level.Z",
+            "SIAP.Disposition.Level.A",
+            "SIAP.Disposition.Level.B",
+            "SIAP.Disposition.Level.C",
+            "SIAP.Disposition.Level.D",
+            "SIAP.Disposition.Level.E",
+        ])->where("is_active", 1)->get()->map(function ($i) {
+            return $i['id'];
+        })->toArray();
+
+        $UPID = UserPermission::where("user_id", $r->UserData->id)->whereIn("permission_id", $PIDs)->first()->permission_id ?? 0;
+        $Code = substr(Permission::where("id", $UPID)->where("is_active", 1)->first()->name ?? "", -1);
+        if (in_array($Code, ["A", "B", "C", "D", "E"])) {
+            return [
+                'user_supervisors' => "required|min:1|array",
+                'user_supervisors.*' => "required",
+            ];
+        }
+        return array_merge([
             'title' => 'required|string',
             'from' => 'required|string',
             'dateline' => 'required|string|in:OneDay,TwoDay,ThreeDay',
@@ -201,10 +220,14 @@ class DispositionController extends Controller
             'note' => 'string',
             'tags' => 'array',
             'private' => 'required|boolean',
-            'users_decision' => 'required|integer|min:1', // user id decision
-            'users_responders' => 'required|min:1|array',
-            'users_responders.*' => 'required', // user id responder
-        ];
+            'user_decision' => 'required|integer|min:1',
+            'user_responders' => 'required|min:1|array',
+            'user_responders.*' => 'required',
+            'user_supervisors' => ($isEdit ? "required|min:1|" : "")+'array',
+        ], $isEdit ? [
+            'user_supervisors.*' => "required",
+        ] : []);
+
     }
 
     public function AddNewLetterHandler(Request $r)
@@ -226,7 +249,7 @@ class DispositionController extends Controller
     public function EditLetterHandler(Request $r, ?int $id = null)
     {
         try {
-            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule());
+            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule($r, true));
             $r->request->add(['id' => $id]);
             if (!$this->SIAPRepository->EditLetter($r)) {
                 throw new \App\Exceptions\FailedAddEditGlobalException("failed edit a letter", 400);

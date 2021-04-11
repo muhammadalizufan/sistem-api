@@ -100,7 +100,6 @@ class OutgoingLetterController extends Controller
             'address' => 'required|string',
             'cat_name' => 'required|string',
             'original_letter' => 'required|string',
-            'note' => 'string|nullable',
         ];
     }
 
@@ -109,22 +108,14 @@ class OutgoingLetterController extends Controller
         $PID = Permission::where(["name" => "SIAP.OutgoingLetter.Approver", "is_active" => 1])->first()->id ?? 0;
         $UP = UserPermission::where(["user_id" => $r->UserData->id, "permission_id" => $PID, "is_active" => 1])->first();
         if (is_object($UP)) {
-            $Rule = [
+            return [
                 'note' => 'string',
                 'validated_letter' => 'required|string',
                 'status' => 'required|string|in:Approve,Reject',
             ];
         } else {
-            $Rule = [
-                'title' => 'required|string',
-                'to' => 'required|string',
-                'agency' => 'required|string',
-                'address' => 'required|string',
-                'cat_name' => 'required|string',
-                'original_letter' => 'required|string',
-            ];
+            return self::AddNewLetterRule();
         }
-        return $Rule;
     }
 
     public function AddNewLetterHandler(Request $r)
@@ -148,7 +139,7 @@ class OutgoingLetterController extends Controller
     {
         try {
             ValidatorManager::ValidateJSON($r, self::EditLetterRule($r));
-            $r->request->add(['outcoming_letter_id' => $id, 'user_id' => $r->UserData->id]);
+            $r->request->add(['id' => $id, 'user_id' => $r->UserData->id]);
             if (!$this->SIAPRepo->EditOutgoingLetter($r)) {
                 throw new \App\Exceptions\FailedAddEditGlobalException("failed edit letter", 400);
             }
