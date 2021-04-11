@@ -28,15 +28,26 @@ class DispositionController extends Controller
     {
         $lvl = $r->input('level', '');
         $GID = $r->input('group_id', 0);
-        if (in_array($lvl, ["Z", "A", "B", "C", "D", "E"])) {
-            $PID = Permission::where("name", "SIAP.Disposition.Level.{$lvl}")->where("is_active", 1)->first()->id;
-            $UP = UserPermission::with("Role")
-                ->select("user_id", "role_id", "group_id")
-                ->where("permission_id", $PID)
-                ->where("user_id", "!=", $r->UserData->id);
+        $DecisionOnly = $r->input('decision_only', '0');
 
-            if ($GID > 0 && $lvl == "D") {
-                $UP = $UP->where("group_id", $r->group_id);
+        $Data = function ($DecisionOnly = '0') use ($r, $GID, $lvl) {
+            $UP = UserPermission::with("Role")->select("user_id", "role_id", "group_id");
+            if ($DecisionOnly == '1') {
+                $PIDs = Permission::whereIn("name", [
+                    "SIAP.Disposition.Level.A",
+                    "SIAP.Disposition.Level.B",
+                ])->where("is_active", 1)->get()->map(function ($i) {
+                    return $i['id'];
+                });
+                $UP = $UP->whereIn("permission_id", $PIDs);
+                $UP = $UP->where("user_id", "!=", $r->UserData->id);
+            } else {
+                $PID = Permission::where("name", "SIAP.Disposition.Level.{$lvl}")->where("is_active", 1)->first()->id;
+                $UP = $UP->where("permission_id", $PID);
+                if ($GID > 0 && $lvl == "D") {
+                    $UP = $UP->where("group_id", $r->group_id);
+                }
+                $UP = $UP->where("user_id", "!=", $r->UserData->id);
             }
 
             return $UP->get()->map(function ($i) {
@@ -45,6 +56,14 @@ class DispositionController extends Controller
                     "name" => $i['role']['name'],
                 ];
             });
+        };
+
+        if ($DecisionOnly == '1') {
+            return response($Data($DecisionOnly), 200);
+        }
+
+        if (in_array($lvl, ["Z", "A", "B", "C", "D", "E"])) {
+            return response($Data($DecisionOnly), 200);
         }
 
         $PLevels = [
@@ -91,12 +110,12 @@ class DispositionController extends Controller
             $UP = $UP->where("group_id", $r->UserData->group->group_id);
         }
 
-        return $UP->get()->map(function ($i) {
+        return response($UP->get()->map(function ($i) {
             return [
                 "id" => $i['user_id'],
                 "name" => $i['role']['name'],
             ];
-        });
+        }), 200);
     }
 
     public function GetInboxHandler(Request $r, ?int $id = null)
@@ -169,7 +188,7 @@ class DispositionController extends Controller
                 })->where("forward_to", "!=", $FID ?? 0)->get()->map(function ($i) {
                     return [
                         'id' => $i['user']['id'],
-                        'name' => $i['user']['name'] ?? null,
+                        'user_name' => $i['user']['name'] ?? null,
                         'role_name' => $i['user']['role']['role']['name'] ?? null,
                     ];
                 });
@@ -192,7 +211,6 @@ class DispositionController extends Controller
     private static function AddEditNewLetterRule(Request $r = null, bool $isEdit = false): array
     {
         $PIDs = Permission::whereIn("name", [
-            "SIAP.Disposition.Level.Z",
             "SIAP.Disposition.Level.A",
             "SIAP.Disposition.Level.B",
             "SIAP.Disposition.Level.C",
@@ -210,7 +228,7 @@ class DispositionController extends Controller
                 'user_supervisors.*' => "required",
             ];
         }
-        return array_merge([
+        return [
             'title' => 'required|string',
             'from' => 'required|string',
             'dateline' => 'required|string|in:OneDay,TwoDay,ThreeDay',
@@ -223,17 +241,15 @@ class DispositionController extends Controller
             'user_decision' => 'required|integer|min:1',
             'user_responders' => 'required|min:1|array',
             'user_responders.*' => 'required',
-            'user_supervisors' => ($isEdit ? "required|min:1|" : "")+'array',
-        ], $isEdit ? [
-            'user_supervisors.*' => "required",
-        ] : []);
+            'user_supervisors' => 'array',
+        ];
 
     }
 
     public function AddNewLetterHandler(Request $r)
     {
         try {
-            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule());
+            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule($r));
             if (!$this->SIAPRepository->AddNewLetter($r)) {
                 throw new \App\Exceptions\FailedAddEditGlobalException("failed add new letter", 400);
             }

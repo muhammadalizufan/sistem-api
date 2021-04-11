@@ -117,7 +117,9 @@ trait DispositionRepository
             }
 
             if (in_array($uid, array_merge($r->user_supervisors, $SPVs))) {
-                $UTypeArr->push($Type[3]);
+                if (!in_array($uid, array_merge($r->user_responders, [$r->user_decision, $r->UserData->id]))) {
+                    $UTypeArr->push($Type[3]);
+                }
             }
 
             $Data->push(
@@ -191,7 +193,6 @@ trait DispositionRepository
         }
 
         $FOld = $IL->file_id;
-
         $Data = array_merge(
             $r->all([
                 'title',
@@ -226,38 +227,55 @@ trait DispositionRepository
             'message_en' => "Editing a disposition letter",
         ]);
 
-        $Clause = [
+        $Query = [
             'ref_id' => $IL->id,
             'ref_type' => "Disposition",
         ];
 
-        $AllUser = array_unique(array_merge($r->user_responders, $r->user_supervisors, [$r->user_decision]));
-        $OldUIDs = Inbox::where($Clause)->get()->map(function ($i) {
+        $SPVs = [];
+        if (!$r->private) {
+            $PIDs = Permission::whereIn("name", ["SIAP.Disposition.Level.A", "SIAP.Disposition.Level.B"])->get()->map(function ($i) {
+                return $i['id'];
+            })->toArray();
+            $UPs = UserPermission::whereIn("permission_id", $PIDs)->where("is_active", 1);
+            $SPVs = $UPs->get()->map(function ($i) {
+                return $i['user_id'];
+            })->toArray();
+        }
+
+        $AllUser = array_unique(array_merge($r->user_responders, $r->user_supervisors, $SPVs, [$r->user_decision]));
+        $OldUIDs = Inbox::where($Query)->get()->map(function ($i) {
             return $i['forward_to'];
         })->toArray();
 
         $DeleteUser = collect([]);
         foreach (array_unique($OldUIDs) as $olduid) {
-            if (!in_array($olduid, $AllUser)) {
+            if (!in_array($olduid, array_unique(array_merge($AllUser, [$r->UserData->id])))) {
                 $DeleteUser->push($olduid);
             }
         }
         $DeleteUser = $DeleteUser->toArray();
 
-        $CreateComment = function ($uid) use ($Clause) {
-            $C = Comment::onlyTrashed()->where(array_merge($Clause, [
+        $CreateComment = function ($uid) use ($Query) {
+            $C = Comment::withTrashed()->where(array_merge($Query, [
                 'created_by' => $uid,
             ]));
             if (is_null($C->first())) {
-                Comment::create(array_merge($Clause, [
+                Comment::create(array_merge($Query, [
                     'created_by' => $uid,
                     'comment' => null,
                 ]));
             } else {
-                $C->update([
-                    'comment' => null,
-                ]);
-                $C->restore();
+                if (is_object(
+                    Comment::onlyTrashed()->where(array_merge($Query, [
+                        'created_by' => $uid,
+                    ]))->first()
+                )) {
+                    $C->update([
+                        'comment' => null,
+                    ]);
+                    $C->restore();
+                }
             }
         };
 
@@ -270,35 +288,42 @@ trait DispositionRepository
             if (in_array($uid, $r->user_responders)) {
                 $UTypeArr->push($Type[1]);
             }
-            if (in_array($uid, $r->user_supervisors)) {
-                $UTypeArr->push($Type[2]);
+            if (in_array($uid, array_unique(array_merge($r->user_supervisors, $SPVs)))) {
+                if (!in_array($uid, array_merge($r->user_responders, [$r->user_decision]))) {
+                    $UTypeArr->push($Type[2]);
+                }
             }
 
-            $I = Inbox::onlyTrashed()->where(array_merge($Clause, [
+            $I = Inbox::onlyTrashed()->where(array_merge($Query, [
                 'forward_to' => $uid,
             ]));
 
             if (is_object($I->first())) {
-                $CreateComment($uid);
+                if (!in_array($uid, array_unique(array_merge($r->user_supervisors, $SPVs)))) {
+                    if (in_array($uid, array_merge($r->user_responders, [$r->user_decision]))) {
+                        $CreateComment($uid);
+                    }
+                }
                 $I->update([
                     'user_type' => implode(",", $UTypeArr->toArray()),
                 ]);
                 $I->restore();
             } else {
-                $CreateComment($uid);
-                $Check = Inbox::where(array_merge($Clause, [
+                if (!in_array($uid, array_unique(array_merge($r->user_supervisors, $SPVs)))) {
+                    if (in_array($uid, array_merge($r->user_responders, [$r->user_decision]))) {
+                        $CreateComment($uid);
+                    }
+                }
+                $Check = Inbox::where(array_merge($Query, [
                     'forward_to' => $uid,
                 ]));
-                foreach ($UTypeArr->toArray() as $k) {
-                    $Check = $Check->whereRaw("FIND_IN_SET('{$k}', `inboxs`.`user_type`) != 0");
-                }
                 if (is_null($Check->first())) {
-                    Inbox::create(array_merge($Clause, [
+                    Inbox::create(array_merge($Query, [
                         'forward_to' => $uid,
                         'user_type' => implode(",", $UTypeArr->toArray()),
                     ]));
                 } else {
-                    $Check->update(array_merge($Clause, [
+                    $Check->update(array_merge($Query, [
                         'forward_to' => $uid,
                         'user_type' => implode(",", $UTypeArr->toArray()),
                     ]));
@@ -307,8 +332,8 @@ trait DispositionRepository
         }
 
         if (count($DeleteUser) > 0) {
-            Inbox::where($Clause)->whereIn('forward_to', $DeleteUser)->delete();
-            Comment::where($Clause)->whereIn('created_by', $DeleteUser)->delete();
+            Inbox::where($Query)->whereIn('forward_to', $DeleteUser)->delete();
+            Comment::where($Query)->whereIn('created_by', $DeleteUser)->delete();
         }
 
         return true;
