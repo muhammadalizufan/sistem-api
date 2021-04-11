@@ -16,11 +16,12 @@ class CreateActivitiesTable extends Migration
         Schema::connection("extension")->create('activities', function (Blueprint $table) {
             $table->id();
             $table->bigInteger("user_id")->default(0)->index()->comment("This field related to table users");
-            $table->tinyInteger("ref_type")->default(0);
             $table->bigInteger("ref_id")->default(0)->index()->comment("These field are related by reference type");
+            $table->string("ref_type")->default("");
             $table->string("action")->default("");
             $table->string("message_id")->default("");
             $table->string("message_en")->default("");
+            $table->text("data")->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

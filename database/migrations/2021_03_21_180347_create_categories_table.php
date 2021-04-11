@@ -16,7 +16,6 @@ class CreateCategoriesTable extends Migration
         Schema::connection("extension")->create('categories', function (Blueprint $table) {
             $table->id();
             $table->string("name")->default("");
-            $table->tinyInteger('type')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

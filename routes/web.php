@@ -166,10 +166,6 @@ $router->group(["prefix" => "api"], function () use ($router) {
                     "permission" => "SIAP.Disposition.ViewDetail",
                     "uses" => "DispositionController@GetDisposistionResponders",
                 ]);
-                $router->get("responders-level/{level:[0-9]+}", [
-                    "permission" => "SIAP.Disposition.ViewDetail",
-                    "uses" => "DispositionController@GetDisposistionResponders",
-                ]);
 
                 $router->post("add", [
                     "permission" => "SIAP.Disposition.Add",
@@ -179,13 +175,45 @@ $router->group(["prefix" => "api"], function () use ($router) {
                     "permission" => "SIAP.Disposition.Edit",
                     "uses" => "DispositionController@EditLetterHandler",
                 ]);
-                $router->post("comment/{id:[0-9]+}", [
-                    "permission" => "SIAP.Disposition.Comment",
+                $router->post("comment", [
+                    // "permission" => "SIAP.Disposition.Comment",
                     "uses" => "DispositionController@CommentLetterHandler",
                 ]);
-                $router->post("send/{id:[0-9]+}", [
+                $router->post("send", [
                     "permission" => "SIAP.Disposition.Send",
                     "uses" => "DispositionController@SendLetterHandler",
+                ]);
+            });
+
+            $router->group(["prefix" => "requestdata"], function () use ($router) {
+                $router->get("inboxs", [
+                    "permission" => "SIAP.RequestData.ViewSearch",
+                    "uses" => "RequestDataController@GetRequestDataInbox",
+                ]);
+                $router->get("inbox/{id:[0-9]+}", [
+                    "permission" => "SIAP.RequestData.ViewDetail",
+                    "uses" => "RequestDataController@GetRequestDataInbox",
+                ]);
+                $router->get("responders", [
+                    "permission" => "SIAP.RequestData.Administrator",
+                    "uses" => "RequestDataController@GetRequestDataResponders",
+                ]);
+
+                $router->post("add", [
+                    "permission" => "SIAP.RequestData.Requester",
+                    "uses" => "RequestDataController@AddRequestDataHandler",
+                ]);
+                $router->post("comment/{id:[0-9]+}", [
+                    "permission" => "SIAP.RequestData.Responders",
+                    "uses" => "RequestDataController@CommentRequestDataHandler",
+                ]);
+                $router->post("add-confirmer/{id:[0-9]+}", [
+                    "permission" => "SIAP.RequestData.Administrator",
+                    "uses" => "RequestDataController@AddConfirmerRequestDataHandler",
+                ]);
+                $router->post("confirmation/{id:[0-9]+}", [
+                    "permission" => "SIAP.RequestData.Administrator",
+                    "uses" => "RequestDataController@ConfirmationRequestDataHandler",
                 ]);
             });
         });

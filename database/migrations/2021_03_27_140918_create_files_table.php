@@ -17,10 +17,11 @@ class CreateFilesTable extends Migration
             $table->id();
             $table->string("name")->default("");
             $table->string("fullname")->default("");
-            $table->tinyInteger("ref_type")->default(0);
             $table->bigInteger("ref_id")->default(0)->index()->comment("These field are related by reference type");
+            $table->string("ref_type")->default("")->index();
             $table->string("ext")->default("");
             $table->string("path")->default("");
+            $table->tinyInteger("is_used")->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

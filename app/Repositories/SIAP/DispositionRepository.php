@@ -3,379 +3,364 @@ namespace App\Repositories\SIAP;
 
 use App\Libs\Helpers;
 use App\Models\Account\Permission;
+use App\Models\Account\Role;
 use App\Models\Account\User;
 use App\Models\Account\UserPermission;
 use App\Models\Extension\Category;
 use App\Models\Extension\File;
-use App\Models\SIAP\ForwardIncomingLetter;
+use App\Models\SIAP\Comment;
+use App\Models\SIAP\Inbox;
 use App\Models\SIAP\IncomingLetter;
 use App\Models\SIAP\Tag;
-use App\Models\SIAP\TagIncomingLetter;
 use App\Repositories\Extension\ExtensionRepository;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 trait DispositionRepository
 {
-    // check user has add permission on desposition.add
-    public function AddNewLetter(array $body = []): array
+    public function AddNewLetter(Request $r)
     {
-        // Check Body
-        if (count($body) <= 0) {
-            return [
-                "status" => false,
-                "message" => "failed add new letter, body is empty",
-            ];
-        }
-        $GetUserID = (function () use ($body): ?array{
-            $PRID = Permission::where(["name" => "SIAP.Disposition.Responders", "is_active" => 1])->first()->id ?? 0;
-            $PDID = Permission::where(["name" => "SIAP.Disposition.Decision", "is_active" => 1])->first()->id ?? 0;
-            return [
-                "Responders" => UserPermission::whereIn("role_id", $body['forward_to']['responders'])
-                    ->where("permission_id", $PRID)->get()
-                    ->map(function ($i) {
-                        return $i['user_id'];
-                    })
-                    ->toArray(),
-                "Decision" => UserPermission::where("permission_id", $PDID)->first()->user_id ?? 0,
-            ];
-        })();
-        $ResponderUIDs = $GetUserID['Responders'];
-        $DecisionUID = $GetUserID['Decision'];
-        if ($ResponderUIDs <= 0 || $DecisionUID == 0) {
-            return [
-                "status" => false,
-                "message" => "failed add new letter, user with role is empty",
-            ];
-        }
-
-        // Set Format Dateline
-        $body = Helpers::ConvertDatelineBodyToDate($body);
-
-        // Create When Category Not Found
         $C = Category::updateOrcreate([
-            'name' => trim($body['cat_name']),
-            'type' => 1, // Disposition Categories
+            'name' => trim($r->cat_name),
         ]);
 
-        // Insert Incoming Letter
-        $IL = IncomingLetter::create([
-            'user_id' => $body["user_id"],
-            'cat_id' => $C->id ?? 0,
-            'code' => "SIAP/SM/" . time(),
-            'title' => $body["title"],
-            'from' => $body["from"],
-            'date' => Carbon::now(),
-            'dateline' => $body["dateline"],
-            'file' => $body["file"],
-            'desc' => $body["desc"],
-            'note' => $body["note"],
-            'status' => 0, // Set Status to 0 (Process)
-            'is_archive' => 0,
-        ]);
-        if (!is_object($IL)) {
-            return [
-                "status" => false,
-                "message" => "failed add new letter",
-            ];
-        }
+        Helpers::ConvertDatelineBodyToDate($r);
 
-        // Add User Activity
-        $AA = (new ExtensionRepository())->AddActivity([
-            'user_id' => $body['user_id'],
-            'ref_type' => 1, // Disposition Letter
-            'ref_id' => $IL->id,
-            'action' => "AddDisposition",
-            'message_id' => "Menambahkan surat disposisi baru",
-            'message_en' => "Adding a new disposition letter",
-        ]);
-        if (!$AA['status']) {
-            return [
-                "status" => false,
-                "message" => $AA['message'],
-            ];
-        }
-
-        // Update Reference ID Files table
-        $F = File::find($body['file_id']);
-        $F->update([
-            'ref_id' => $IL->id,
-        ]);
-
-        // Insert Tags When Tag Not Found
-        if (count($body['tags']) > 0) {
-            foreach ($body['tags'] as $tag) {
-                $T = Tag::where('name', trim($tag));
-                if (is_null($T->first())) {
-                    $T = Tag::create([
-                        "name" => trim($tag),
-                    ]);
-                    if (is_object($T)) {
-                        TagIncomingLetter::create([
-                            'incoming_letter_id' => $IL->id,
-                            'tag_id' => $T->id,
-                        ]);
-                    }
-                } else {
-                    $T = $T->first();
-                    if (is_object($T)) {
-                        TagIncomingLetter::create([
-                            'incoming_letter_id' => $IL->id,
-                            'tag_id' => $T->id,
-                        ]);
-                    }
+        $Tags = collect([]);
+        if (count($r->tags ?? []) > 0) {
+            foreach ($r->tags as $t) {
+                if (strlen($t) != 0) {
+                    $Tags->push(Tag::updateOrcreate([
+                        "name" => trim($t),
+                    ])->id);
                 }
             }
         }
 
-        $MergeWithDate = function (array $array = []): array{
-            return array_merge($array, [
-                'comment' => null,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
-        };
-        $ForwardTo = collect([
-            $MergeWithDate([
-                'incoming_letter_id' => $IL->id,
-                'user_id' => (int) $body["user_id"],
-                'types' => 0, // Creator
-            ]),
-            $MergeWithDate([
-                'incoming_letter_id' => $IL->id,
-                'user_id' => (int) $DecisionUID,
-                'types' => 1, // Decision
-            ])]);
+        $Data = array_merge(
+            $r->all([
+                'title',
+                'from',
+                'file_id',
+                'desc',
+                'dateline',
+                'note',
+                'private',
+            ]), [
+                'user_id' => $r->UserData->id ?? 0,
+                'cat_id' => $C->id ?? 0,
+                'code' => "SIAP/SM/" . time(),
+                'tags' => implode(",", $Tags->toArray()),
+                'date' => Carbon::now(),
+                'status' => 0, // Process
+                'is_archive' => 0,
+            ]
+        );
 
-        foreach ($ResponderUIDs as $id) {
-            $ForwardTo->push(
-                $MergeWithDate([
-                    'incoming_letter_id' => $IL->id,
-                    'user_id' => (int) $id,
-                    'types' => 2, // Responder
-                ])
-            );
-        }
-
-        $FIL = ForwardIncomingLetter::insert($ForwardTo->toArray());
-        if (!$FIL) {
-            IncomingLetter::where('id', $IL->id)->forceDelete();
+        $IL = IncomingLetter::create($Data);
+        if (!is_object($IL)) {
             return [
                 "status" => false,
                 "message" => "failed add new letter",
             ];
         }
 
-        return [
-            "status" => true,
-        ];
+        (new ExtensionRepository())->AddActivity([
+            'user_id' => $r->UserData->id ?? 0,
+            'ref_type' => "Disposition",
+            'ref_id' => $IL->id,
+            'action' => "Add",
+            'message_id' => "Menambahkan surat disposisi baru",
+            'message_en' => "Adding a new disposition letter",
+        ]);
+
+        $F = File::find($r->input('file_id', 0));
+        $F->update([
+            'ref_type' => "Disposition",
+            'ref_id' => $IL->id,
+            'is_used' => 1,
+        ]);
+
+        $AddDate = function (array $array = []) {
+            return array_merge($array, [
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+        };
+
+        $SPVs = [];
+        if (!$r->private) {
+            $PIDs = Permission::whereIn("name", ["SIAP.Disposition.Level.A", "SIAP.Disposition.Level.B"])->get()->map(function ($i) {
+                return $i['id'];
+            })->toArray();
+            $UPs = UserPermission::whereIn("permission_id", $PIDs)->where("is_active", 1);
+            $SPVs = $UPs->get()->map(function ($i) {
+                return $i['user_id'];
+            })->toArray();
+        }
+        $Data = collect([]);
+
+        foreach (array_unique(array_merge($r->users_responders, $SPVs, [$r->UserData->id, $r->users_decision])) as $uid) {
+            $Type = ["Administator", "Decision", "Responder", "Supervisor"];
+            $UTypeArr = collect([]);
+            if ($uid == $r->UserData->id) {
+                $UTypeArr->push($Type[0]);
+            }
+            if ($uid == $r->users_decision) {
+                $UTypeArr->push($Type[1]);
+            }
+            if (in_array($uid, $r->users_responders)) {
+                $UTypeArr->push($Type[2]);
+            }
+            if (!$r->private) {
+                if (in_array($uid, $SPVs)) {
+                    $UTypeArr->push($Type[3]);
+                }
+            }
+            $Data->push(
+                $AddDate([
+                    'ref_id' => $IL->id,
+                    'ref_type' => "Disposition",
+                    'forward_to' => $uid,
+                    'user_type' => implode(",", $UTypeArr->toArray()),
+                ])
+            );
+        }
+
+        if (!Inbox::insert($Data->toArray())) {
+            IncomingLetter::where('id', $IL->id)->forceDelete();
+            return false;
+        }
+        if (!Comment::insert(
+            $Data->map(function ($i) use ($AddDate) {
+                $valid = false;
+                foreach (explode(",", $i['user_type']) ?? [] as $v) {
+                    if (in_array($v, ["Decision", "Responder"])) {
+                        $valid = true;
+                    }
+                }
+                if ($valid) {
+                    return $AddDate([
+                        'ref_id' => $i['ref_id'],
+                        'ref_type' => "Disposition",
+                        'created_by' => $i['forward_to'],
+                    ]);
+                }
+                return null;
+            })->filter(function ($v) {
+                return !is_null($v);
+            })->toArray()
+        )) {
+            return false;
+        }
+
+        return true;
     }
 
-    public function EditLetter(array $body = []): array
+    public function EditLetter(Request $r)
     {
-        // Check Body
-        if (count($body) <= 0) {
-            return [
-                "status" => false,
-                "message" => "failed update letter, body is empty",
-            ];
-        }
-        $GetUserID = (function () use ($body): ?array{
-            $PRID = Permission::where(["name" => "SIAP.Disposition.Responders", "is_active" => 1])->first()->id ?? 0;
-            $PDID = Permission::where(["name" => "SIAP.Disposition.Decision", "is_active" => 1])->first()->id ?? 0;
-            return [
-                "Responders" => UserPermission::whereIn("role_id", $body['forward_to']['responders'])
-                    ->where("permission_id", $PRID)->get()
-                    ->map(function ($i) {
-                        return $i['user_id'];
-                    })
-                    ->toArray(),
-                "Decision" => UserPermission::where("permission_id", $PDID)->first()->user_id ?? 0,
-            ];
-        })();
-        $ResponderUIDs = $GetUserID['Responders'];
-        $DecisionUID = $GetUserID['Decision'];
-        if ($ResponderUIDs <= 0 || $DecisionUID == 0) {
-            return [
-                "status" => false,
-                "message" => "failed update letter, user with role is empty",
-            ];
-        }
-        // Set Format Dateline
-        $body = Helpers::ConvertDatelineBodyToDate($body);
+        Helpers::ConvertDatelineBodyToDate($r);
 
-        // Update Incoming Letter
-        $IL = IncomingLetter::find($body['incoming_letter_id']);
-        if (!is_object($IL)) {
-            return [
-                "status" => false,
-                "message" => "failed update letter",
-            ];
+        $IL = IncomingLetter::find($r->id);
+        if (!is_object($IL) || in_array($IL->status, [1, 2])) {
+            return false;
         }
-        // Check Letter Status Has been Success / Failed Cannot be updated
-        if (in_array($IL->status, [1, 2])) {
-            return [
-                "status" => false,
-                "message" => "failed update letter, has been complete.",
-            ];
+
+        $F = File::find($r->file_id);
+        if (!is_object($F)) {
+            return false;
         }
 
         $C = Category::updateOrcreate([
-            'name' => trim($body['cat_name']),
-            'type' => 1, // Disposition Categories
+            'name' => trim($r->cat_name),
         ]);
 
-        $IL->update([
-            'user_id' => $body["user_id"],
-            'cat_id' => $C->id ?? 0,
-            'title' => $body["title"],
-            'from' => $body["from"],
-            'dateline' => $body["dateline"],
-            'file' => $body["file"],
-            'desc' => $body["desc"],
-            'note' => $body["note"],
-        ]);
+        $Tags = collect([]);
+        if (count($r->tags ?? []) > 0) {
+            foreach ($r->tags as $t) {
+                if (strlen($t) != 0) {
+                    $Tags->push(Tag::updateOrcreate([
+                        "name" => trim($t),
+                    ])->id);
+                }
+            }
+        }
 
-        // Add User Activity
-        $AA = (new ExtensionRepository())->AddActivity([
-            'user_id' => $body['user_id'],
-            'ref_type' => 1,
-            'ref_id' => $body['incoming_letter_id'],
-            'action' => "EditDisposition",
+        $FOld = $IL->file_id;
+        $Tags = array_unique(
+            array_merge(
+                collect($IL->tags)->map(function ($i) {
+                    return $i['id'];
+                })->toArray() ?? [],
+                $Tags->toArray(),
+            ),
+        );
+
+        $Data = array_merge(
+            $r->all([
+                'title',
+                'from',
+                'file_id',
+                'desc',
+                'dateline',
+                'note',
+                'private',
+            ]), [
+                'cat_id' => $C->id ?? 0,
+                'tags' => implode(",", $Tags),
+            ]
+        );
+        $IL->update($Data);
+
+        if ($FOld != $r->file_id) {
+            File::where('id', $FOld)->delete();
+            $F->update([
+                'ref_type' => "Disposition",
+                'ref_id' => $IL->id,
+                'is_used' => 1,
+            ]);
+        }
+
+        (new ExtensionRepository())->AddActivity([
+            'user_id' => $r->UserData->id,
+            'ref_type' => "Disposition",
+            'ref_id' => $r->id,
+            'action' => "Edit",
             'message_id' => "Merubah surat disposisi",
             'message_en' => "Editing a disposition letter",
         ]);
-        if (!$AA['status']) {
-            return [
-                "status" => false,
-                "message" => $AA['message'],
-            ];
-        }
 
-        // Update Reference ID Files table
-        $F = File::find($body['file_id']);
-        $F->update([
+        $Clause = [
             'ref_id' => $IL->id,
-        ]);
+            'ref_type' => "Disposition",
+        ];
 
-        // Add Or Restore Forward Incoming Letter Responder
-        foreach ($ResponderUIDs as $id) {
-            $FIL = ForwardIncomingLetter::withTrashed()
-                ->where(['incoming_letter_id' => $body['incoming_letter_id'], 'user_id' => $id]);
-            if (is_object($FIL->first())) {
-                $FIL->update([
-                    'comment' => null,
-                ]);
-                $FIL->restore();
+        $SPVs = [];
+        if (!$r->private) {
+            $PIDs = Permission::whereIn("name", ["SIAP.Disposition.Level.A", "SIAP.Disposition.Level.B"])->get()->map(function ($i) {
+                return $i['id'];
+            })->toArray();
+            $SPVs = UserPermission::whereIn("permission_id", $PIDs)->where("is_active", 1)->get()->map(function ($i) {
+                return $i['user_id'];
+            })->toArray();
+        }
+
+        $AllUser = array_unique(array_merge($r->users_responders, $SPVs, [$r->UserData->id, $r->users_decision]));
+
+        $OldUIDs = Inbox::where($Clause)->get()->map(function ($i) {
+            return $i['forward_to'];
+        })->toArray();
+
+        $DeleteUser = collect(array_unique($OldUIDs))->map(function ($i) use ($AllUser) {
+            return !in_array($i, $AllUser) ? $i : null;
+        })->filter(function ($v) {
+            return !is_null($v);
+        });
+
+        // BUG : User Type Doesnt sync
+        foreach ($AllUser as $uid) {
+            $Type = ["Administator", "Decision", "Responder", "Supervisor"];
+            $UTypeArr = collect([]);
+            if ($uid == $r->UserData->id) {
+                $UTypeArr->push($Type[0]);
+            }
+            if ($uid == $r->users_decision) {
+                $UTypeArr->push($Type[1]);
+            }
+            if (in_array($uid, $r->users_responders)) {
+                $UTypeArr->push($Type[2]);
+            }
+            if (!$r->private) {
+                if (in_array($uid, $SPVs)) {
+                    $UTypeArr->push($Type[3]);
+                }
+            }
+
+            $I = Inbox::withTrashed()->where(array_merge($Clause, [
+                'forward_to' => $uid,
+            ]));
+            if (is_object($I->first())) {
+                $C = Comment::withTrashed()->where(array_merge($Clause, [
+                    'created_by' => $uid,
+                ]));
+                if (is_object($C->first())) {
+                    $C->update([
+                        'comment' => null,
+                    ]);
+                }
+                $I->restore();
             } else {
-                ForwardIncomingLetter::create([
-                    'incoming_letter_id' => $body['incoming_letter_id'],
-                    'user_id' => (int) $id,
-                    'types' => 2, // Responder
-                    'comment' => null,
+                Inbox::create([
+                    'ref_id' => $IL->id,
+                    'ref_type' => "Disposition",
+                    'forward_to' => $uid,
+                    'user_type' => implode(",", $UTypeArr->toArray()),
                 ]);
             }
         }
-        // Delete Forward Incoming Letter
-        $FIL = ForwardIncomingLetter::where('incoming_letter_id', $body['incoming_letter_id'])
-            ->whereNotIn('user_id', \array_merge($ResponderUIDs, [
-                $body['user_id'], $DecisionUID,
-            ]))->delete();
-        return [
-            "status" => true,
-        ];
+
+        if (count($DeleteUser) > 0) {
+            Inbox::where($Clause)->whereIn('forward_to', $DeleteUser)->delete();
+            Comment::where($Clause)->whereIn('created_by', $DeleteUser)->delete();
+        }
+
+        return true;
     }
 
-    public function CommentLetter(?array $body = []): array
+    public function CommentLetter(Request $r)
     {
-        // Check Body
-        if (count($body) <= 0) {
-            return [
-                "status" => false,
-                "message" => "failed comment letter, body is empty",
-            ];
-        }
-        // user_id by token user -> check permission, open inbox, ke detail, tulis komen, send
-        $FIL = ForwardIncomingLetter::find($body['forward_incoming_letter_id']);
-        if (!is_object($FIL)) {
-            return [
-                "status" => false,
-                "message" => "failed comment letter",
-            ];
+        $C = Comment::find($r->comment_id);
+        if (!is_object($C)) {
+            return false;
         }
 
-        if (is_null($FIL->comment)) {
-            // Add User Activity
-            $AA = (new ExtensionRepository())->AddActivity([
-                'user_id' => $body['user_id'],
-                'ref_type' => 1,
-                'ref_id' => $FIL->incoming_letter_id,
-                'action' => "EditCommentDisposition",
-                'message_id' => "Mengomentari surat disposisi",
-                'message_en' => "Comment on disposition letter",
-            ]);
-            if (!$AA['status']) {
-                return [
-                    "status" => false,
-                    "message" => $AA['message'],
-                ];
-            }
-        }
+        $C->update($r->all(['comment']));
 
-        $FIL->update([
-            'comment' => $body['comment'],
+        (new ExtensionRepository())->AddActivity([
+            'user_id' => $r->UserData->id,
+            'ref_id' => $C->ref_id,
+            'ref_type' => "Disposition",
+            'action' => "EditComment",
+            'message_id' => "Mengubah komentar surat disposisi",
+            'message_en' => "Change the disposition letter comments",
         ]);
-        return [
-            "status" => true,
-        ];
+
+        return true;
     }
 
-    public function SendLetter(?array $body = []): array
+    public function SendLetter(Request $r)
     {
-        // Check Body
-        if (count($body) <= 0) {
-            return [
-                "status" => false,
-                "message" => "failed send letter, body is empty",
-            ];
+        $D = IncomingLetter::find($r->disposition_id);
+        if (!is_object($D) || in_array($D->status, [1, 2])) {
+            return false;
         }
-        $GetUserID = (function () use ($body): ?int {
-            $PID = Permission::where(["name" => "SIAP.Disposition", "is_active" => 1])->first()->id ?? 0;
-            return UserPermission::where("role_id", $body['send_to'])->where("permission_id", $PID)->first()->user_id ?? 0;
-        })();
-        $FIL = ForwardIncomingLetter::create([
-            'incoming_letter_id' => $body['incoming_letter_id'],
-            'user_id' => (int) $GetUserID,
-            'types' => 3, // Receiver
-            'comment' => null,
+
+        $I = Inbox::create([
+            'ref_id' => $r->disposition_id,
+            'ref_type' => "Disposition",
+            'forward_to' => $r->to,
+            'user_type' => "Receiver",
         ]);
-        if (!$FIL) {
-            return [
-                "status" => false,
-                "message" => "failed send letter",
-            ];
+        if (!is_object($I)) {
+            return false;
         }
-        $IL = IncomingLetter::find($body['incoming_letter_id']);
-        $IL->update([
+
+        $D->update([
             'status' => 1,
         ]);
-        $U = User::find($GetUserID);
-        // Add User Activity
-        $AA = (new ExtensionRepository())->AddActivity([
-            'user_id' => $body['user_id'],
-            'ref_type' => 1,
-            'ref_id' => $FIL->incoming_letter_id,
+
+        $Name = User::select("id", "name")->where('id', $r->to)->first()->name ?? "";
+        $RoleID = UserPermission::select("role_id")->where(["user_id" => $r->to, "is_active" => 1])->first()->role_id ?? "";
+        $RoleName = Role::where('id', $RoleID)->first()->name ?? "";
+        (new ExtensionRepository())->AddActivity([
+            'user_id' => $r->UserData->id,
+            'ref_type' => "Disposition",
+            'ref_id' => $r->disposition_id,
             'action' => "SendDisposition",
-            'message_id' => "Mengirim surat disposisi ke " . ($U->name ?? ""),
-            'message_en' => "Send a disposition letter to " . ($U->name ?? ""),
+            'message_id' => "Mengirim surat disposisi ke {$RoleName} dengan nama {$Name}",
+            'message_en' => "Send a disposition letter to {$RoleName} under the name {$Name}",
         ]);
-        if (!$AA['status']) {
-            return [
-                "status" => false,
-                "message" => $AA['message'],
-            ];
-        }
-        return [
-            "status" => true,
-        ];
+        // Todo: Kirim Surat Perintah Ke User Yg Diberikan Tugas
+        return true;
     }
 }
