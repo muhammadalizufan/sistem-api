@@ -13,12 +13,12 @@ class UploadController extends Controller
     {
         $this->validate($r, [
             'file' => 'required|max:15360', // anything but max size: 15 MB
-            'from' => 'required|integer|min:1',
         ]);
         $file = $r->file("file");
 
         $basepath = '/public/storage';
-        $path = base_path($basepath);
+        $date = date("Y-m-d");
+        $path = base_path($basepath . "/" . $date);
         if (!file_exists($path)) {
             mkdir($path, 0777, true);
         }
@@ -31,7 +31,7 @@ class UploadController extends Controller
         $F = File::create([
             'name' => $name,
             'fullname' => $fullname,
-            'ref_type' => $r->input('from', 0),
+            'ref_type' => "",
             'ref_id' => 0,
             'ext' => $ext,
             'path' => $basepath,
@@ -41,7 +41,7 @@ class UploadController extends Controller
             'id' => $F->id ?? 0,
             'name' => $name,
             'file' => $fullname,
-            'url' => URL::to('/storage/' . $fullname),
+            'url' => URL::to('/storage/' . $date . '/' . $fullname),
         ]);
     }
 }
