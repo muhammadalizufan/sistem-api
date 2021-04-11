@@ -2,184 +2,133 @@
 namespace App\Repositories\SIAP;
 
 use App\Libs\Helpers;
+use App\Models\Account\Permission;
+use App\Models\Account\UserPermission;
 use App\Models\Extension\Category;
 use App\Models\SIAP\OutgoingLetter;
 use App\Repositories\Extension\ExtensionRepository;
+use Illuminate\Http\Request;
 
 trait OutgoingLetterRepository
 {
-    public function AddNewOutgoingLetter(?array $body = null)
+
+    private function RMScriptTagHTML(Request $r, $isAdd = true)
     {
-        // Check Body
-        if (count($body) <= 0) {
-            return [
-                "status" => false,
-                "message" => "failed add new letter, body is empty",
-            ];
+        $original = $r->input('original_letter', '');
+        $validate = $r->input('validated_letter', '');
+        $r->merge(['original_letter' => !empty($original) ? Helpers::RMScriptTagHTML($original, true) : ""]);
+        if (!$isAdd) {
+            $r->merge(['validated_letter' => !empty($validate) ? Helpers::RMScriptTagHTML($validate, true) : ""]);
         }
+    }
 
-        // Create When Category Not Found
-        $C = Category::where(['name' => trim($body['cat_name']), 'type' => 2])->first();
-        if (is_null($C)) {
-            $C = Category::create([
-                'name' => trim($body['cat_name']),
-                'type' => 2, // Outgoing Letter Categories
-            ]);
-        }
+    public function AddNewOutgoingLetter(Request $r)
+    {
+        $C = Category::updateOrcreate([
+            'name' => trim($r->input('cat_name', 0)),
+        ]);
 
-        // Filter HTML String
-        $body = $this->RMScriptTagHTML($body);
+        $this->RMScriptTagHTML($r);
 
-        $OL = OutgoingLetter::create([
-            'user_id' => $body['user_id'],
+        $OL = OutgoingLetter::create(array_merge($r->all([
+            'user_id',
+            'title',
+            'to',
+            'agency',
+            'address',
+            'original_letter',
+            'validated_letter',
+            'note',
+        ])), [
             'cat_id' => $C->id ?? 0,
             'code' => "SIAP/SK/" . time(),
-            'title' => $body['title'],
-            'to' => $body['to'],
-            'agency' => $body['agency'],
-            'address' => $body['address'],
-            'original_letter' => $body['original_letter'],
-            'validated_letter' => null,
-            'note' => $body['note'],
             'status' => 0,
             'is_archive' => 0,
         ]);
         if (!is_object($OL)) {
-            return [
-                "status" => false,
-                "message" => "failed add new letter",
-            ];
+            return false;
         }
 
-        // Add User Activity
-        $AA = (new ExtensionRepository())->AddActivity([
-            'user_id' => $body['user_id'],
-            'ref_type' => 2, // Outgoing Letter
+        (new ExtensionRepository())->AddActivity([
+            'user_id' => $r->UserData->id,
+            'ref_type' => "OutgoingLetter",
             'ref_id' => $OL->id,
-            'action' => "AddOutgoingLetter",
+            'action' => "Add",
             'message_id' => "Menambahkan surat keluar baru",
             'message_en' => "Adding a new outgoing letter",
         ]);
-        if (!$AA['status']) {
-            return [
-                "status" => false,
-                "message" => $AA['message'],
-            ];
-        }
 
-        return [
-            "status" => true,
-        ];
+        return true;
     }
 
-    private function RMScriptTagHTML($body, $isAdd = true)
+    public function EditOutgoingLetter(Request $r)
     {
-        $body['original_letter'] = Helpers::RMScriptTagHTML($body['original_letter'], true);
-        if (!$isAdd) {
-            $body['validated_letter'] = Helpers::RMScriptTagHTML($body['validated_letter'], true);
-        }
-        return $body;
-    }
-
-    public function EditOutgoingLetter(?array $body = null)
-    {
-        // Check Body
-        if (count($body) <= 0) {
-            return [
-                "status" => false,
-                "message" => "failed edit letter, body is empty",
-            ];
+        $OL = OutgoingLetter::find($r->id);
+        if (!is_object($OL)) {
+            return false;
         }
 
-        // Create When Category Not Found
-        $C = Category::where(['name' => trim($body['cat_name']), 'type' => 2])->first();
-        if (is_null($C)) {
-            $C = Category::create([
-                'name' => trim($body['cat_name']),
-                'type' => 2, // Outgoing Letter Categories
-            ]);
-        }
-
-        // Chnage Body Status
+        $TMsg = "";
         $status = 0;
-        $translateMsg = "";
-        switch ($body['status']) {
-            case 'Approve':
-                $status = 1;
-                $translateMsg = "diterima";
-                break;
+        switch ($r->input('status', '')) {
             case 'Reject':
                 $status = 2;
-                $translateMsg = "ditolak";
+                $TMsg = "ditolak";
                 break;
             case 'Process':
                 $status = 0;
-                $translateMsg = "proses";
+                $TMsg = "proses";
                 break;
         }
 
-        // Filter HTML String
-        $body = $this->RMScriptTagHTML($body, false);
-
-        $OL = OutgoingLetter::find($body['outcoming_letter_id']);
+        $this->RMScriptTagHTML($r, false);
 
         $OldStatus = $OL->status;
-        $OldValidatedLetter = $OL->validated_letter;
 
-        $CreateActivity = function (string $messageId = "", string $messageEn = "") use ($body, $OL) {
+        $CreateActivity = function (string $messageId = "", string $messageEn = "") use ($r, $OL) {
             (new ExtensionRepository())->AddActivity([
-                'user_id' => $body['user_id'],
-                'ref_type' => 2, // Outgoing Letter
+                'user_id' => $r->input('user_id', 0),
+                'ref_type' => "OutgoingLetter",
                 'ref_id' => $OL->id,
-                'action' => "EditOutgoingLetter",
+                'action' => "Edit",
                 'message_id' => $messageId,
                 'message_en' => $messageEn,
             ]);
         };
 
-        $OL->update([
-            'cat_id' => $C->id ?? 0,
-            'title' => $body['title'],
-            'to' => $body['to'],
-            'agency' => $body['agency'],
-            'original_letter' => $body['original_letter'],
-            'validated_letter' => $body['validated_letter'],
-            'note' => $body['note'],
-            'status' => $status,
-        ]);
+        $PID = Permission::where(["name" => "SIAP.OutgoingLetter.Approver", "is_active" => 1])->first()->id ?? 0;
+        $UP = UserPermission::where(["user_id" => $r->UserData->id, "permission_id" => $PID, "is_active" => 1])->first();
 
-        // Set Activity User
-        $compareString = strcmp($body['original_letter'], $body['validated_letter']);
-
-        // messages
-        $MsgIDFirst = "Melakukan validasi surat keluar";
-        $MsgENFirst = "Perform outgoing mail validation";
-        $MsgIDSecond = "Melakukan perubahan surat keluar";
-        $MsgENSecond = "Make changes to outgoing mail";
-
-        if (!is_null($OldValidatedLetter)) {
-            if ($compareString >= 0) {
-                $CreateActivity($MsgIDFirst, $MsgENFirst);
-            } else {
-                $CreateActivity($MsgIDSecond, $MsgENSecond);
+        if (is_object($UP)) {
+            $C = Category::updateOrcreate([
+                'name' => trim($r->input('cat_name', '')),
+            ]);
+            $Update = array_merge($r->all([
+                'validated_letter',
+                'note',
+            ]), [
+                'cat_id' => $C->id ?? 0,
+                'status' => $status,
+            ]);
+            $CreateActivity("Melakukan validasi surat keluar", "Perform outgoing mail validation");
+            if ($OldStatus != $status) {
+                $TMsgEn = strtolower($r->status);
+                $CreateActivity("Merubah status surat keluar menjadi {$TMsg}", "Change the outgoing mail status to {$TMsgEn}");
             }
         } else {
-            if ($compareString > 0) {
-                $CreateActivity($MsgIDFirst, $MsgENFirst);
-            }
-            if ($compareString < 0) {
-                $CreateActivity($MsgIDSecond, $MsgENSecond);
-            }
+            $Update = array_merge($r->all([
+                'title',
+                'to',
+                'agency',
+                'address',
+                'original_letter',
+            ]), [
+                'status' => 0,
+            ]);
+            $CreateActivity("Melakukan perubahan surat keluar", "Make changes to outgoing mail");
         }
+        $OL->update($Update);
 
-        // if old status letter edited and cannot same status
-        if ($OldStatus != $status) {
-            $translateMsgEn = \strtolower($body['status']);
-            $CreateActivity("Merubah status surat keluar menjadi {$translateMsg}", "Change the outgoing mail status to {$translateMsgEn}");
-        }
-
-        return [
-            "status" => true,
-        ];
+        return true;
     }
 }

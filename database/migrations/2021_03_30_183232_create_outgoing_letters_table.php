@@ -20,6 +20,7 @@ class CreateOutgoingLettersTable extends Migration
             $table->string("code")->default("");
             $table->string("title")->default("");
             $table->string("to")->default("");
+            $table->text("address")->nullable();
             $table->string("agency")->default("");
             $table->text("note")->nullable();
             $table->text("original_letter")->nullable();
