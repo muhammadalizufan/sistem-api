@@ -32,6 +32,9 @@ class DispositionController extends Controller
 
         $Data = function ($DecisionOnly = '0') use ($r, $GID, $lvl) {
             $UP = UserPermission::with("Role")->select("user_id", "role_id", "group_id");
+            $UP = $UP->whereHas("Role", function ($q) use ($r) {
+                $q->where('name', 'LIKE', $r->input('name', '') . "%");
+            });
             if ($DecisionOnly == '1') {
                 $PIDs = Permission::whereIn("name", [
                     "SIAP.Disposition.Level.A",
@@ -105,6 +108,10 @@ class DispositionController extends Controller
             ->select("user_id", "role_id", "group_id")
             ->whereIn("permission_id", $PIDs)
             ->where("user_id", "!=", $r->UserData->id);
+
+        $UP = $UP->whereHas("Role", function ($q) use ($r) {
+            $q->where('name', 'LIKE', $r->input('name', '') . "%");
+        });
 
         if ($Code == "D") {
             $UP = $UP->where("group_id", $r->UserData->group->group_id);
