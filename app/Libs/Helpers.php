@@ -2,6 +2,7 @@
 namespace App\Libs;
 
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -130,23 +131,19 @@ class Helpers
      *
      * @return static
      */
-    public static function ConvertDatelineBodyToDate(?array $body = []): ?array
+    public static function ConvertDatelineBodyToDate(Request $r)
     {
-        switch ($body["dateline"]) {
+        switch ($r->input('dateline', 'ThreeDay')) {
             case 'OneDay':
-                $body["dateline"] = Carbon::now();
+                $r->merge(['dateline' => Carbon::now()]);
                 break;
             case 'TwoDay':
-                $body["dateline"] = Carbon::now()->addDays(2);
+                $r->merge(['dateline' => Carbon::now()->addDays(2)]);
                 break;
             case 'ThreeDay':
-                $body["dateline"] = Carbon::now()->addDays(3);
-                break;
-            default:
-                $body["dateline"] = Carbon::now()->addDays(3);
+                $r->merge(['dateline' => Carbon::now()->addDays(3)]);
                 break;
         }
-        return $body;
     }
     /**
      * Generate Random String.

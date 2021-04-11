@@ -41,6 +41,7 @@ class File extends Model
         'ref_id',
         'ext',
         'path',
+        'is_used',
     ];
 
     /**
@@ -54,7 +55,8 @@ class File extends Model
 
     public function getUrlAttribute()
     {
-        return URL::to('/storage/' . $this->attributes['fullname']);
+        $time = date("Y-m-d", strtotime($this->attributes['created_at']));
+        return URL::to("/storage/$time/" . $this->attributes['fullname']);
     }
 
     /**
@@ -63,8 +65,6 @@ class File extends Model
      * @var array
      */
     protected $hidden = [
-        'created_at',
-        'updated_at',
         'deleted_at',
     ];
 }
