@@ -83,8 +83,6 @@ trait OutgoingLetterRepository
 
         $this->RMScriptTagHTML($r, false);
 
-        $OldStatus = $OL->status;
-
         $CreateActivity = function (string $messageId = "", string $messageEn = "") use ($r, $OL) {
             (new ExtensionRepository())->AddActivity([
                 'user_id' => $r->input('user_id', 0),
@@ -111,7 +109,7 @@ trait OutgoingLetterRepository
                 'status' => $status,
             ]);
             $CreateActivity("Melakukan validasi surat keluar", "Perform outgoing mail validation");
-            if ($OldStatus != $status) {
+            if ($OL->status != $status) {
                 $TMsgEn = strtolower($r->status);
                 $CreateActivity("Merubah status surat keluar menjadi {$TMsg}", "Change the outgoing mail status to {$TMsgEn}");
             }

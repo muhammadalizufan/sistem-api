@@ -187,14 +187,6 @@ trait DispositionRepository
         }
 
         $FOld = $IL->file_id;
-        $Tags = array_unique(
-            array_merge(
-                collect($IL->tags)->map(function ($i) {
-                    return $i['id'];
-                })->toArray() ?? [],
-                $Tags->toArray(),
-            ),
-        );
 
         $Data = array_merge(
             $r->all([
@@ -207,7 +199,7 @@ trait DispositionRepository
                 'private',
             ]), [
                 'cat_id' => $C->id ?? 0,
-                'tags' => implode(",", $Tags),
+                'tags' => implode(",", $Tags->toArray()),
             ]
         );
         $IL->update($Data);
@@ -251,13 +243,12 @@ trait DispositionRepository
             return $i['forward_to'];
         })->toArray();
 
-        $DeleteUser = collect(array_unique($OldUIDs))->map(function ($i) use ($AllUser) {
-            return !in_array($i, $AllUser) ? $i : null;
+        $DeleteUser = collect(array_unique($OldUIDs))->map(function ($OldID) use ($AllUser) {
+            return !in_array($OldID, $AllUser) ? $OldID : null;
         })->filter(function ($v) {
             return !is_null($v);
-        });
+        })->toArray();
 
-        // BUG : User Type Doesnt sync
         foreach ($AllUser as $uid) {
             $Type = ["Administator", "Decision", "Responder", "Supervisor"];
             $UTypeArr = collect([]);
@@ -276,26 +267,52 @@ trait DispositionRepository
                 }
             }
 
-            $I = Inbox::withTrashed()->where(array_merge($Clause, [
-                'forward_to' => $uid,
-            ]));
-            if (is_object($I->first())) {
-                $C = Comment::withTrashed()->where(array_merge($Clause, [
+            $CreateComment = function ($uid) use ($Clause) {
+                $C = Comment::onlyTrashed()->where(array_merge($Clause, [
                     'created_by' => $uid,
                 ]));
                 if (is_object($C->first())) {
+                    Comment::create(array_merge($Clause, [
+                        'created_by' => $uid,
+                        'comment' => null,
+                    ]));
+                } else {
                     $C->update([
                         'comment' => null,
                     ]);
+                    $C->restore();
                 }
-                $I->restore();
-            } else {
-                Inbox::create([
-                    'ref_id' => $IL->id,
-                    'ref_type' => "Disposition",
-                    'forward_to' => $uid,
+            };
+
+            $I = Inbox::onlyTrashed()->where(array_merge($Clause, [
+                'forward_to' => $uid,
+            ]));
+
+            if (is_object($I->first())) {
+                $CreateComment($uid);
+                $I->update([
                     'user_type' => implode(",", $UTypeArr->toArray()),
                 ]);
+                $I->restore();
+            } else {
+                $CreateComment($uid);
+                $Check = Inbox::where(array_merge($Clause, [
+                    'forward_to' => $uid,
+                ]));
+                foreach ($UTypeArr->toArray() as $k) {
+                    $Check = $Check->whereRaw("FIND_IN_SET('{$k}', `inboxs`.`user_type`) != 0");
+                }
+                if (is_null($Check->first())) {
+                    Inbox::create(array_merge($Clause, [
+                        'forward_to' => $uid,
+                        'user_type' => implode(",", $UTypeArr->toArray()),
+                    ]));
+                } else {
+                    $Check->update(array_merge($Clause, [
+                        'forward_to' => $uid,
+                        'user_type' => implode(",", $UTypeArr->toArray()),
+                    ]));
+                }
             }
         }
 

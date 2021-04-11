@@ -142,10 +142,12 @@ class DispositionController extends Controller
                 ];
 
                 // Responders
-                $Payload['responders'] = Comment::with(["User"])->where([
+                $Payload['responders'] = Comment::with(["User", "Disposition"])->where([
                     "ref_id" => $Payload['ref_id'],
                     "ref_type" => "Disposition",
-                ])->where("created_by", "!=", $FID ?? 0)->get()->map(function ($i) {
+                ])->whereHas("Disposition", function ($q) {
+                    $q->whereRaw("FIND_IN_SET('Responder', `inboxs`.`user_type`) != 0");
+                })->where("created_by", "!=", $FID ?? 0)->get()->map(function ($i) {
                     return [
                         'id' => $i['id'],
                         'user_id' => $i['user']['id'],
@@ -153,6 +155,22 @@ class DispositionController extends Controller
                         'user_name' => $i['user']['name'] ?? null,
                         'role_name' => $i['user']['role']['role']['name'] ?? null,
                         'comment' => $i['comment'],
+                    ];
+                });
+
+                // Supervisors
+                $Payload['supervisors'] = Inbox::with(["User"])->where([
+                    "ref_id" => $Payload['ref_id'],
+                    "ref_type" => "Disposition",
+                ])->where(function ($q) {
+                    $q->whereRaw("FIND_IN_SET('Supervisor', `inboxs`.`user_type`) != 0");
+                    $q->whereRaw("FIND_IN_SET('Decision', `inboxs`.`user_type`) = 0");
+                    $q->whereRaw("FIND_IN_SET('Responder', `inboxs`.`user_type`) = 0");
+                })->where("forward_to", "!=", $FID ?? 0)->get()->map(function ($i) {
+                    return [
+                        'id' => $i['user']['id'],
+                        'name' => $i['user']['name'] ?? null,
+                        'role_name' => $i['user']['role']['role']['name'] ?? null,
                     ];
                 });
             }

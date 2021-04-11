@@ -50,6 +50,11 @@ class Comment extends Model
         'deleted_at',
     ];
 
+    public function Disposition()
+    {
+        return $this->hasOne(Inbox::class, "ref_id", "ref_id")->where("ref_type", "Disposition");
+    }
+
     public function User()
     {
         return $this->hasOne(User::class, "id", "created_by")->select('id', 'name')->with("Role");
