@@ -100,7 +100,7 @@ trait DispositionRepository
         }
         $Data = collect([]);
 
-        foreach (array_unique(array_merge($r->user_responders, $r->user_supervisors, $SPVs, [$r->UserData->id, $r->user_decision])) as $uid) {
+        foreach (array_unique(array_merge($r->user_responders ?? [], $r->user_supervisors ?? [], $SPVs ?? [], [$r->UserData->id, $r->user_decision])) as $uid) {
             $Type = ["Administator", "Decision", "Responder", "Supervisor"];
             $UTypeArr = collect([]);
 
@@ -112,12 +112,12 @@ trait DispositionRepository
                 $UTypeArr->push($Type[1]);
             }
 
-            if (in_array($uid, $r->user_responders)) {
+            if (in_array($uid, $r->user_responders ?? [])) {
                 $UTypeArr->push($Type[2]);
             }
 
-            if (in_array($uid, array_merge($r->user_supervisors, $SPVs))) {
-                if (!in_array($uid, array_merge($r->user_responders, [$r->user_decision, $r->UserData->id]))) {
+            if (in_array($uid, array_merge($r->user_supervisors ?? [], $SPVs ?? []))) {
+                if (!in_array($uid, array_merge($r->user_responders ?? [], [$r->user_decision, $r->UserData->id]))) {
                     $UTypeArr->push($Type[3]);
                 }
             }
@@ -243,7 +243,7 @@ trait DispositionRepository
             })->toArray();
         }
 
-        $AllUser = array_unique(array_merge($r->user_responders, $r->user_supervisors, $SPVs, [$r->user_decision]));
+        $AllUser = array_unique(array_merge($r->user_responders ?? [], $r->user_supervisors ?? [], $SPVs ?? [], [$r->user_decision]));
         $OldUIDs = Inbox::where($Query)->get()->map(function ($i) {
             return $i['forward_to'];
         })->toArray();
@@ -285,11 +285,11 @@ trait DispositionRepository
             if ($uid == $r->user_decision) {
                 $UTypeArr->push($Type[0]);
             }
-            if (in_array($uid, $r->user_responders)) {
+            if (in_array($uid, $r->user_responders ?? [])) {
                 $UTypeArr->push($Type[1]);
             }
-            if (in_array($uid, array_unique(array_merge($r->user_supervisors, $SPVs)))) {
-                if (!in_array($uid, array_merge($r->user_responders, [$r->user_decision]))) {
+            if (in_array($uid, array_unique(array_merge($r->user_supervisors ?? [], $SPVs ?? [])))) {
+                if (!in_array($uid, array_merge($r->user_responders ?? [], [$r->user_decision]))) {
                     $UTypeArr->push($Type[2]);
                 }
             }
@@ -299,8 +299,8 @@ trait DispositionRepository
             ]));
 
             if (is_object($I->first())) {
-                if (!in_array($uid, array_unique(array_merge($r->user_supervisors, $SPVs)))) {
-                    if (in_array($uid, array_merge($r->user_responders, [$r->user_decision]))) {
+                if (!in_array($uid, array_unique(array_merge($r->user_supervisors ?? [], $SPVs ?? [])))) {
+                    if (in_array($uid, array_merge($r->user_responders ?? [], [$r->user_decision]))) {
                         $CreateComment($uid);
                     }
                 }
@@ -309,8 +309,8 @@ trait DispositionRepository
                 ]);
                 $I->restore();
             } else {
-                if (!in_array($uid, array_unique(array_merge($r->user_supervisors, $SPVs)))) {
-                    if (in_array($uid, array_merge($r->user_responders, [$r->user_decision]))) {
+                if (!in_array($uid, array_unique(array_merge($r->user_supervisors ?? [], $SPVs ?? [])))) {
+                    if (in_array($uid, array_merge($r->user_responders ?? [], [$r->user_decision]))) {
                         $CreateComment($uid);
                     }
                 }
