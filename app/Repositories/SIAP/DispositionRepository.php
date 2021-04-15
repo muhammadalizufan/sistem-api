@@ -366,15 +366,25 @@ trait DispositionRepository
         if (!is_object($D) || in_array($D->status, [1, 2])) {
             return false;
         }
-
-        $I = Inbox::create([
-            'ref_id' => $r->disposition_id,
+        $Query = [
+            'ref_id' => $D->id,
             'ref_type' => "Disposition",
+        ];
+
+        $Check = Inbox::where(array_merge($Query, [
             'forward_to' => $r->to,
-            'user_type' => "Receiver",
-        ]);
-        if (!is_object($I)) {
-            return false;
+        ]));
+        $I = $Check->first();
+        if (is_null($I)) {
+            Inbox::create(array_merge($Query, [
+                'forward_to' => $r->to,
+                'user_type' => "Receiver",
+            ]));
+        } else {
+            $Check->update(array_merge($Query, [
+                'forward_to' => $r->to,
+                'user_type' => implode(",", array_merge(explode(",", $I->user_type) ?? [], ["Receiver"])),
+            ]));
         }
 
         $D->update([
@@ -384,13 +394,14 @@ trait DispositionRepository
         $Name = User::select("id", "name")->where('id', $r->to)->first()->name ?? "";
         $RoleID = UserPermission::select("role_id")->where(["user_id" => $r->to, "is_active" => 1])->first()->role_id ?? "";
         $RoleName = Role::where('id', $RoleID)->first()->name ?? "";
+        $Title = $D->title ?? "";
         (new ExtensionRepository())->AddActivity([
             'user_id' => $r->UserData->id,
             'ref_type' => "Disposition",
             'ref_id' => $r->disposition_id,
             'action' => "SendDisposition",
-            'message_id' => "Mengirim surat disposisi ke {$RoleName} dengan nama {$Name}",
-            'message_en' => "Send a disposition letter to {$RoleName} under the name {$Name}",
+            'message_id' => "Mengirim surat disposisi {$Title} ke {$RoleName} dengan nama {$Name}",
+            'message_en' => "Send a disposition letter {$Title} to {$RoleName} under the name {$Name}",
         ]);
         // Todo: Kirim Surat Perintah Ke User Yg Diberikan Tugas
         return true;
