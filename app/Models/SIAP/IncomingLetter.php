@@ -60,6 +60,7 @@ class IncomingLetter extends Model
     protected $appends = [
         'tags',
         'status_letter',
+        'dateline_type',
     ];
 
     /**
@@ -68,10 +69,27 @@ class IncomingLetter extends Model
      * @var array
      */
     protected $hidden = [
-        'created_at',
         'updated_at',
         'deleted_at',
     ];
+
+    public function getDatelineTypeAttribute()
+    {
+        switch (date_diff(date_create($this->attributes['created_at']), date_create($this->attributes['dateline']))->d) {
+            case 1:
+                return "OneDay";
+                break;
+            case 2:
+                return "TwoDay";
+                break;
+            case 3:
+                return "ThreeDay";
+                break;
+            default:
+                return null;
+                break;
+        }
+    }
 
     public function getTagsAttribute()
     {
