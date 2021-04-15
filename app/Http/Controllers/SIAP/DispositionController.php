@@ -128,8 +128,10 @@ class DispositionController extends Controller
     public function GetInboxHandler(Request $r, ?int $id = null)
     {
         $I = Inbox::with([
-            "Disposition" => function ($q) use ($r) {
-                $q->whereIn("status", $r->input("status", [0]));
+            "Disposition" => function ($q) use ($r, $id) {
+                if (is_null($id)) {
+                    $q->whereIn("status", $r->input("status", [0]));
+                }
                 $q->where("is_archive", $r->input("archive", 0));
             },
             "User",
