@@ -134,8 +134,8 @@ class DispositionController extends Controller
         $I = $I->whereHas("Disposition", function ($q) use ($r, $id) {
             if (is_null($id)) {
                 $q->whereIn("status", $r->input("status", [0]));
+                $q->where("is_archive", $r->input("archive", 0));
             }
-            $q->where("is_archive", $r->input("archive", 0));
         });
         $I = $I->where("ref_type", "Disposition")->where("forward_to", $r->UserData->id);
         if (!is_null($id)) {
@@ -218,31 +218,12 @@ class DispositionController extends Controller
         return $Payload;
     }
 
-    private static function AddEditNewLetterRule(Request $r = null, bool $isEdit = false): array
+    private static function AddEditNewLetterRule(bool $isEdit = false): array
     {
-        // $PIDs = Permission::whereIn("name", [
-        //     "SIAP.Disposition.Level.A",
-        //     "SIAP.Disposition.Level.B",
-        //     "SIAP.Disposition.Level.C",
-        //     "SIAP.Disposition.Level.D",
-        //     "SIAP.Disposition.Level.E",
-        // ])->where("is_active", 1)->get()->map(function ($i) {
-        //     return $i['id'];
-        // })->toArray();
-
-        // $UPID = UserPermission::where("user_id", $r->UserData->id)->whereIn("permission_id", $PIDs)->first()->permission_id ?? 0;
-        // $Code = substr(Permission::where("id", $UPID)->where("is_active", 1)->first()->name ?? "", -1);
-        // if (in_array($Code, ["A", "B", "C", "D", "E"])) {
-        //     return [
-        //         'user_supervisors' => "required|min:1|array",
-        //         'user_supervisors.*' => "required",
-        //     ];
-        // }
-
         return [
             'title' => 'required|string',
             'from' => 'required|string',
-            'dateline' => 'required|string|in:OneDay,TwoDay,ThreeDay',
+            'dateline' => ($isEdit ? '' : 'required') . 'string|in:OneDay,TwoDay,ThreeDay',
             'cat_name' => 'required|string',
             'file_id' => 'required|integer|min:1',
             'desc' => 'string',
@@ -260,7 +241,7 @@ class DispositionController extends Controller
     public function AddNewLetterHandler(Request $r)
     {
         try {
-            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule($r));
+            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule());
             if (!$this->SIAPRepository->AddNewLetter($r)) {
                 throw new \App\Exceptions\FailedAddEditGlobalException("failed add new letter", 400);
             }
@@ -276,7 +257,7 @@ class DispositionController extends Controller
     public function EditLetterHandler(Request $r, ?int $id = null)
     {
         try {
-            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule($r, true));
+            ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule(true));
             $r->request->add(['id' => $id]);
             if (!$this->SIAPRepository->EditLetter($r)) {
                 throw new \App\Exceptions\FailedAddEditGlobalException("failed edit a letter", 400);
@@ -306,6 +287,26 @@ class DispositionController extends Controller
         return response([
             "api_version" => "1.0",
             "message" => "success comment a letter",
+        ], 200);
+    }
+
+    public function AddResponderLetterHandler(Request $r)
+    {
+        try {
+            ValidatorManager::ValidateJSON($r, [
+                'disposition_id' => 'required|integer|min:1',
+                'to' => 'required|array|min:1',
+                'to.*' => 'required',
+            ]);
+            if (!$this->SIAPRepository->AddResponderLetter($r)) {
+                throw new \App\Exceptions\FailedAddEditGlobalException("failed add responder in letter", 400);
+            }
+        } catch (\ValidateException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
+        }
+        return response([
+            "api_version" => "1.0",
+            "message" => "success add responder in letter",
         ], 200);
     }
 

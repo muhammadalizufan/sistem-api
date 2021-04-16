@@ -360,6 +360,92 @@ trait DispositionRepository
         return true;
     }
 
+    public function AddResponderLetter(Request $r)
+    {
+        $D = IncomingLetter::find($r->disposition_id);
+        if (!is_object($D) || in_array($D->status, [1, 2])) {
+            return false;
+        }
+        $Query = [
+            'ref_id' => $D->id,
+            'ref_type' => "Disposition",
+        ];
+
+        $Check = Inbox::where($Query)->whereIn('forward_to', $r->input('to', []));
+        $Check = $Check->get();
+
+        $HasBeenAdded = $Check->map(function ($i) {
+            return $i['forward_to'];
+        })->toArray();
+
+        $CreateComment = function ($uid) use ($Query) {
+            $C = Comment::withTrashed()->where(array_merge($Query, [
+                'created_by' => $uid,
+            ]));
+            if (is_null($C->first())) {
+                Comment::create(array_merge($Query, [
+                    'created_by' => $uid,
+                    'comment' => null,
+                ]));
+            } else {
+                if (is_object(
+                    Comment::onlyTrashed()->where(array_merge($Query, [
+                        'created_by' => $uid,
+                    ]))->first()
+                )) {
+                    $C->update([
+                        'comment' => null,
+                    ]);
+                    $C->restore();
+                }
+            }
+        };
+
+        $HasChange = false;
+        foreach ($r->input('to', []) as $k) {
+            if (!in_array($k, $HasBeenAdded)) {
+                Inbox::create(array_merge($Query, [
+                    'forward_to' => $k,
+                    'user_type' => "Responder",
+                ]));
+                $CreateComment($k);
+                $HasChange = true;
+            }
+        }
+
+        $Check = $Check->toArray();
+        if (count($Check) > 0) {
+            foreach ($Check as $k => $i) {
+                $I = Inbox::withTrashed()->where(array_merge($Query, [
+                    'forward_to' => $i['forward_to'],
+                ]));
+                $UTypes = explode(",", $i['user_type']) ?? [];
+                if (!in_array("Responder", $UTypes)) {
+                    $I->update([
+                        'user_type' => implode(",", array_merge($UTypes, ["Responder"])),
+                    ]);
+                    $I->restore();
+                    $CreateComment($i['forward_to']);
+                    $HasChange = true;
+                }
+            }
+        }
+
+        if ($HasChange) {
+            $RoleName = $r->UserData->role->role->name ?? "";
+            (new ExtensionRepository())->AddActivity([
+                'user_id' => $r->UserData->id,
+                'ref_type' => "Disposition",
+                'ref_id' => $r->disposition_id,
+                'action' => "AddResponderDisposition",
+                'message_id' => "{$RoleName} menambah penanggap di surat disposisi",
+                'message_en' => "{$RoleName} adding a responder in disposition letter",
+            ]);
+        }
+
+        return true;
+    }
+
     public function SendLetter(Request $r)
     {
         $D = IncomingLetter::find($r->disposition_id);

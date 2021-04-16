@@ -175,6 +175,13 @@ $router->group(["prefix" => "api"], function () use ($router) {
                     "permission" => "SIAP.Disposition.Edit",
                     "uses" => "DispositionController@EditLetterHandler",
                 ]);
+                $router->post("add-responders", [
+                    "permission" => [
+                        "SIAP.Disposition.ViewSearch",
+                        "SIAP.Disposition.ViewDetail",
+                    ],
+                    "uses" => "DispositionController@AddResponderLetterHandler",
+                ]);
                 $router->post("comment", [
                     // "permission" => "SIAP.Disposition.Comment",
                     "uses" => "DispositionController@CommentLetterHandler",
