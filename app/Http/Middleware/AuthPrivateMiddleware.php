@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Account\Permission;
+use App\Models\Account\UserPermission;
 use App\Repositories\Account\AccountRepository;
 use Closure;
 use Firebase\JWT\JWT;
@@ -39,7 +41,12 @@ class AuthPrivateMiddleware
             }
             $RP = $request->input("route_permission");
             if (!is_bool($RP)) {
-                if (!in_array($RP, $Permissions->toArray() ?? [])) {
+                $PIDs = Permission::whereIn('name', is_array($RP) ? $RP : [$RP])->get()->map(function ($i) {
+                    return $i['id'];
+                });
+                if (UserPermission::whereIn('permission_id', $PIDs)
+                    ->where('user_id', $U->data->id)
+                    ->where('is_active', 1)->count() <= 0) {
                     throw new \Exception("Sorry you doesn`t have a permission on this feature");
                 }
             }
@@ -47,11 +54,14 @@ class AuthPrivateMiddleware
             $request->request->add(['UserData' => $U->data]);
             return $next($request);
         } catch (\Exception $e) {
-            $Code = 422;
+            $Code = 400;
             if ($e->getMessage() == "Expired token") {
                 $Code = 401;
             }
-            throw new \App\Exceptions\UnauthorizedException($e->getMessage(), $Code);
+            if ($e->getMessage() == "User Not Found") {
+                $Code = 404;
+            }
+            throw new \App\Exceptions\SingleErrorException($e->getMessage(), $Code);
         }
         return $next($request);
     }

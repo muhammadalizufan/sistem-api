@@ -29,6 +29,7 @@ class Handler extends ExceptionHandler
         UserNotRegisteredException::class,
         IncorrectPasswordException::class,
         UnauthorizedException::class,
+        SingleErrorException::class,
         FailedAddEditGlobalException::class,
         RoleNotFoundException::class,
         GroupNotFoundException::class,
