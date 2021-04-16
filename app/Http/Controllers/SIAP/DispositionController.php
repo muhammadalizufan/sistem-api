@@ -128,14 +128,15 @@ class DispositionController extends Controller
     public function GetInboxHandler(Request $r, ?int $id = null)
     {
         $I = Inbox::with([
-            "Disposition" => function ($q) use ($r, $id) {
-                if (is_null($id)) {
-                    $q->whereIn("status", $r->input("status", [0]));
-                }
-                $q->where("is_archive", $r->input("archive", 0));
-            },
+            "Disposition",
             "User",
         ]);
+        $I = $I->whereHas("Disposition", function ($q) use ($r, $id) {
+            if (is_null($id)) {
+                $q->whereIn("status", $r->input("status", [0]));
+            }
+            $q->where("is_archive", $r->input("archive", 0));
+        });
         $I = $I->where("ref_type", "Disposition")->where("forward_to", $r->UserData->id);
         if (!is_null($id)) {
             $Payload = $I->where('id', $id)->first();
@@ -219,24 +220,25 @@ class DispositionController extends Controller
 
     private static function AddEditNewLetterRule(Request $r = null, bool $isEdit = false): array
     {
-        $PIDs = Permission::whereIn("name", [
-            "SIAP.Disposition.Level.A",
-            "SIAP.Disposition.Level.B",
-            "SIAP.Disposition.Level.C",
-            "SIAP.Disposition.Level.D",
-            "SIAP.Disposition.Level.E",
-        ])->where("is_active", 1)->get()->map(function ($i) {
-            return $i['id'];
-        })->toArray();
+        // $PIDs = Permission::whereIn("name", [
+        //     "SIAP.Disposition.Level.A",
+        //     "SIAP.Disposition.Level.B",
+        //     "SIAP.Disposition.Level.C",
+        //     "SIAP.Disposition.Level.D",
+        //     "SIAP.Disposition.Level.E",
+        // ])->where("is_active", 1)->get()->map(function ($i) {
+        //     return $i['id'];
+        // })->toArray();
 
-        $UPID = UserPermission::where("user_id", $r->UserData->id)->whereIn("permission_id", $PIDs)->first()->permission_id ?? 0;
-        $Code = substr(Permission::where("id", $UPID)->where("is_active", 1)->first()->name ?? "", -1);
-        if (in_array($Code, ["A", "B", "C", "D", "E"])) {
-            return [
-                'user_supervisors' => "required|min:1|array",
-                'user_supervisors.*' => "required",
-            ];
-        }
+        // $UPID = UserPermission::where("user_id", $r->UserData->id)->whereIn("permission_id", $PIDs)->first()->permission_id ?? 0;
+        // $Code = substr(Permission::where("id", $UPID)->where("is_active", 1)->first()->name ?? "", -1);
+        // if (in_array($Code, ["A", "B", "C", "D", "E"])) {
+        //     return [
+        //         'user_supervisors' => "required|min:1|array",
+        //         'user_supervisors.*' => "required",
+        //     ];
+        // }
+
         return [
             'title' => 'required|string',
             'from' => 'required|string',

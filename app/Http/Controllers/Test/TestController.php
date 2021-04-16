@@ -55,7 +55,7 @@ class TestController extends Controller
         //     ]
         // },
 
-        $Array = \collect([
+        $Array = collect([
             [
                 "group" => [
                     "name" => "Super Admin",
@@ -109,9 +109,6 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
-                        "SIAP.RequestData.ViewSearch",
-                        "SIAP.RequestData.ViewDetail",
-                        "SIAP.RequestData.Administrator",
                     ],
                 ],
                 "user" => [
@@ -149,9 +146,6 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
-                        "SIAP.RequestData.ViewSearch",
-                        "SIAP.RequestData.ViewDetail",
-                        "SIAP.RequestData.Administrator",
                     ],
                 ],
             ], [
@@ -469,11 +463,6 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
-                        "SIAP.RequestData.ViewSearch",
-                        "SIAP.RequestData.ViewDetail",
-                        "SIAP.RequestData.Responders",
-                        "SIAP.RequestData.Requester",
-                        "SIAP.RequestData.Administrator",
                     ],
                 ],
                 "user" => [
@@ -553,9 +542,6 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
-                        "SIAP.RequestData.ViewSearch",
-                        "SIAP.RequestData.ViewDetail",
-                        "SIAP.RequestData.Responders",
                     ],
                 ],
             ], [
@@ -1023,17 +1009,19 @@ class TestController extends Controller
                 'is_active' => 1,
             ]);
             if (!is_null($v['group']['permission'])) {
-                $Permissions = [];
-                foreach ($v['group']['permission'] as $p) {
-                    \array_push($Permissions, [
-                        'group_id' => $G->id,
-                        'permission_id' => Permission::where(['name' => $p, 'is_active' => 1])->first()->id ?? 0,
-                        'is_active' => 1,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now(),
-                    ]);
-                }
-                GroupPermission::insert($Permissions);
+                $Ps = Permission::where(['is_active' => 1])
+                    ->whereIn('name', $v['group']['permission'])
+                    ->get()
+                    ->map(function ($i) use ($G) {
+                        return [
+                            'group_id' => $G->id,
+                            'permission_id' => $i['id'],
+                            'is_active' => 1,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ];
+                    });
+                GroupPermission::insert($Ps->toArray() ?? []);
             }
 
             $R = Role::updateOrcreate([
@@ -1041,18 +1029,20 @@ class TestController extends Controller
                 'is_active' => 1,
             ]);
             if (!is_null($v['role']['permission'])) {
-                $Permissions = [];
-                foreach ($v['role']['permission'] as $p) {
-                    \array_push($Permissions, [
-                        'group_id' => $G->id,
-                        'role_id' => $R->id,
-                        'permission_id' => Permission::where(['name' => $p, 'is_active' => 1])->first()->id ?? 0,
-                        'is_active' => 1,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now(),
-                    ]);
-                }
-                RolePermission::insert($Permissions);
+                $Ps = Permission::where(['is_active' => 1])
+                    ->whereIn('name', $v['role']['permission'])
+                    ->get()
+                    ->map(function ($i) use ($G, $R) {
+                        return [
+                            'group_id' => $G->id,
+                            'role_id' => $R->id,
+                            'permission_id' => $i['id'],
+                            'is_active' => 1,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ];
+                    });
+                RolePermission::insert($Ps->toArray() ?? []);
             }
 
             $U = User::updateOrcreate([
@@ -1064,19 +1054,21 @@ class TestController extends Controller
                 'status' => 1,
             ]);
             if (!is_null($v['user']['permission'])) {
-                $Permissions = [];
-                foreach ($v['user']['permission'] as $p) {
-                    \array_push($Permissions, [
-                        'user_id' => $U->id,
-                        'role_id' => $R->id,
-                        'group_id' => $G->id,
-                        'permission_id' => Permission::where(['name' => $p, 'is_active' => 1])->first()->id ?? 0,
-                        'is_active' => 1,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now(),
-                    ]);
-                }
-                UserPermission::insert($Permissions);
+                $Ps = Permission::where(['is_active' => 1])
+                    ->whereIn('name', $v['user']['permission'])
+                    ->get()
+                    ->map(function ($i) use ($G, $R, $U) {
+                        return [
+                            'user_id' => $U->id,
+                            'role_id' => $R->id,
+                            'group_id' => $G->id,
+                            'permission_id' => $i['id'],
+                            'is_active' => 1,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now(),
+                        ];
+                    });
+                UserPermission::insert($Ps->toArray() ?? []);
             }
         }
         return response([
