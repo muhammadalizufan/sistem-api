@@ -100,11 +100,16 @@ trait DispositionRepository
         }
         $Data = collect([]);
 
-        foreach (array_unique(array_merge($r->user_responders ?? [], $r->user_supervisors ?? [], $SPVs ?? [], [$r->UserData->id, $r->user_decision])) as $uid) {
+        $PID = Permission::where("name", "SIAP.Disposition.Level.Z")->first();
+        $UAdmin = UserPermission::whereIn("permission_id", $PID)->where("is_active", 1)->get()->map(function ($i) {
+            return $i['user_id'];
+        })->toArray();
+
+        foreach (array_unique(array_merge($r->user_responders ?? [], $r->user_supervisors ?? [], $SPVs ?? [], $UAdmin ?? [], [$r->UserData->id, $r->user_decision])) as $uid) {
             $Type = ["Administator", "Decision", "Responder", "Supervisor"];
             $UTypeArr = collect([]);
 
-            if ($uid == $r->UserData->id) {
+            if (\in_array($uid, array_merge([$r->UserData->id], $UAdmin ?? []))) {
                 $UTypeArr->push($Type[0]);
             }
 
@@ -117,7 +122,7 @@ trait DispositionRepository
             }
 
             if (in_array($uid, array_merge($r->user_supervisors ?? [], $SPVs ?? []))) {
-                if (!in_array($uid, array_merge($r->user_responders ?? [], [$r->user_decision, $r->UserData->id]))) {
+                if (!in_array($uid, array_merge($r->user_responders ?? [], $UAdmin ?? [], [$r->user_decision, $r->UserData->id]))) {
                     $UTypeArr->push($Type[3]);
                 }
             }
