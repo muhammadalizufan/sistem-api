@@ -205,6 +205,7 @@ class DispositionController extends Controller
             }
             return response($Payload, 200);
         }
+        $I = $I->orderBy('id', 'DESC');
         $Payload = collect($I->paginate($r->input('limit', 10)))->toArray();
         $Payload['data'] = collect($Payload['data'])->map(function ($i) {
             $i['user'] = [

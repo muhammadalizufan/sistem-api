@@ -65,6 +65,7 @@ class OutgoingLetterController extends Controller
         }
 
         if (is_null($id)) {
+            $OL = $OL->orderBy('id', 'DESC');
             $OL = collect($OL->paginate($limit))->toArray();
             $OL['data'] = collect($OL['data'])->map(function ($i) {
                 $i['user'] = [
