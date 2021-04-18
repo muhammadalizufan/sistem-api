@@ -100,8 +100,10 @@ trait DispositionRepository
         }
         $Data = collect([]);
 
-        $PID = Permission::where("name", "SIAP.Disposition.Level.Z")->first();
-        $UAdmin = UserPermission::whereIn("permission_id", $PID)->where("is_active", 1)->get()->map(function ($i) {
+        $UAdmin = UserPermission::where(
+            "permission_id",
+            Permission::where("name", "SIAP.Disposition.Level.Z")->first()->id ?? 0
+        )->where("is_active", 1)->get()->map(function ($i) {
             return $i['user_id'];
         })->toArray();
 
