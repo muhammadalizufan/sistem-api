@@ -61,11 +61,7 @@ class DispositionController extends Controller
             });
         };
 
-        if ($DecisionOnly == '1') {
-            return response($Data($DecisionOnly), 200);
-        }
-
-        if (in_array($lvl, ["Z", "A", "B", "C", "D", "E"])) {
+        if ($DecisionOnly == '1' || in_array($lvl, ["Z", "A", "B", "C", "D", "E"])) {
             return response($Data($DecisionOnly), 200);
         }
 

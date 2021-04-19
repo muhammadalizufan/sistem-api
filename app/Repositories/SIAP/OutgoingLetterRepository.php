@@ -75,9 +75,9 @@ trait OutgoingLetterRepository
                 $status = 2;
                 $TMsg = "ditolak";
                 break;
-            case 'Process':
-                $status = 0;
-                $TMsg = "proses";
+            case 'Approve':
+                $status = 1;
+                $TMsg = "diterima";
                 break;
         }
 
