@@ -29,6 +29,7 @@ class DispositionController extends Controller
         $lvl = $r->input('level', '');
         $GID = $r->input('group_id', 0);
         $DecisionOnly = $r->input('decision_only', '0');
+        $Viewers = $r->input('viewers', '0');
 
         $Data = function ($DecisionOnly = '0') use ($r, $GID, $lvl) {
             $UP = UserPermission::with("Role")->select("user_id", "role_id", "group_id");
@@ -73,16 +74,17 @@ class DispositionController extends Controller
             "SIAP.Disposition.Level.D",
             "SIAP.Disposition.Level.E",
         ];
+
         $Privilages = [
-            "Z" => [0 => "A", 1 => "B", 2 => "C", 3 => "D", 4 => "E"],
-            "A" => [0 => "B", 1 => "C"],
-            "B" => [0 => "B", 1 => "C"],
-            "C" => [0 => "D"],
-            "D" => [0 => "E"],
+            "Z" => collect($Viewers == '1' ? ["A", "B", "C", "D", "E"] : ["A", "B"]),
+            "A" => collect(["B", "C"]),
+            "B" => collect(["B", "C"]),
+            "C" => collect(["D"]),
+            "D" => collect(["E"]),
         ];
 
         foreach ($Privilages as $key => $v) {
-            $Privilages[$key] = collect($Privilages[$key])->map(function ($i) {
+            $Privilages[$key] = $Privilages[$key]->map(function ($i) {
                 return "SIAP.Disposition.Level.{$i}";
             })->toArray();
         }
@@ -163,6 +165,7 @@ class DispositionController extends Controller
                     'role_id' => $D['user']['role']['role_id'] ?? null,
                     'user_name' => $D['user']['name'] ?? null,
                     'role_name' => $D['user']['role']['role']['name'] ?? null,
+                    'updated_at' => $D['updated_at'],
                     'comment' => $D['comment'],
                 ];
 
@@ -179,6 +182,7 @@ class DispositionController extends Controller
                         'role_id' => $i['user']['role']['role_id'] ?? null,
                         'user_name' => $i['user']['name'] ?? null,
                         'role_name' => $i['user']['role']['role']['name'] ?? null,
+                        'updated_at' => $i['updated_at'],
                         'comment' => $i['comment'],
                     ];
                 });
@@ -232,7 +236,6 @@ class DispositionController extends Controller
             'user_responders.*' => 'required',
             'user_supervisors' => 'array',
         ];
-
     }
 
     public function AddNewLetterHandler(Request $r)
@@ -243,7 +246,7 @@ class DispositionController extends Controller
                 throw new \App\Exceptions\FailedAddEditGlobalException("failed add new letter", 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddLetterDispositionException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
         }
         return response([
             "api_version" => "1.0",
