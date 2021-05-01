@@ -76,13 +76,11 @@ class RequestDataController extends Controller
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddRequestDataRule());
-            $r->request->add(['user_id' => $r->UserData->id]);
-            $AL = $this->SIAPRepo->AddNewRequestData($r);
-            if (!$AL['status']) {
-                throw new \App\Exceptions\FailedAddEditGlobalException($AL['message'], 400);
+            if (!$this->SIAPRepo->AddNewRequestData($r)) {
+                throw new \App\Exceptions\FailedAddEditGlobalException("failed add new request data", 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddLetterDispositionException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
         }
         return response([
             "api_version" => "1.0",
@@ -90,42 +88,41 @@ class RequestDataController extends Controller
         ], 201);
     }
 
-    public function AddConfirmerRequestDataHandler(Request $r, ?int $id = null)
+    public function CommentRequestDataHandler(Request $r)
     {
         try {
             ValidatorManager::ValidateJSON($r, [
-                'confirmers' => 'required|min:1|array',
-                'confirmers.*' => 'required',
+                'comment_id' => 'required|integer|min:1',
+                'comment' => 'required|string',
             ]);
-            $r->request->add(['request_data_id' => $id]);
-            $AL = $this->SIAPRepo->AddConfirmerRequestData($r);
+            $AL = $this->SIAPRepo->CommentForwardRequestData($r);
             if (!$AL['status']) {
                 throw new \App\Exceptions\FailedAddEditGlobalException($AL['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddLetterDispositionException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
         }
         return response([
             "api_version" => "1.0",
-            "message" => "success add confirmer a request data",
+            "message" => "success comment in request data",
         ], 200);
     }
 
-    public function ConfirmationRequestDataHandler(Request $r, ?int $id = null)
+    public function ConfirmationRequestDataHandler(Request $r)
     {
         try {
             ValidatorManager::ValidateJSON($r, [
+                'request_data_id' => 'required|integer|min:1',
                 'file' => 'required|string',
                 'file_id' => 'required|integer|min:1',
-                'status' => 'required|string|in:Process,Approve,Reject',
+                'status' => 'required|string|in:Approve,Reject',
             ]);
-            $r->request->add(['request_data_id' => $id]);
             $AL = $this->SIAPRepo->ConfirmationRequestData($r);
             if (!$AL['status']) {
                 throw new \App\Exceptions\FailedAddEditGlobalException($AL['message'], 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddLetterDispositionException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
         }
         return response([
             "api_version" => "1.0",
@@ -133,23 +130,4 @@ class RequestDataController extends Controller
         ], 200);
     }
 
-    public function CommentRequestDataHandler(Request $r, ?int $id = null)
-    {
-        try {
-            ValidatorManager::ValidateJSON($r, [
-                'comment' => 'required|string',
-            ]);
-            $r->request->add(['forward_request_data_id' => $id]);
-            $AL = $this->SIAPRepo->CommentForwardRequestData($r);
-            if (!$AL['status']) {
-                throw new \App\Exceptions\FailedAddEditGlobalException($AL['message'], 400);
-            }
-        } catch (\ValidateException $e) {
-        } catch (\FailedAddLetterDispositionException $e) {
-        }
-        return response([
-            "api_version" => "1.0",
-            "message" => "success comment on requested data",
-        ], 200);
-    }
 }

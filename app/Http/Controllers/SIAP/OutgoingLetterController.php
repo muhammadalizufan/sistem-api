@@ -128,7 +128,7 @@ class OutgoingLetterController extends Controller
                 throw new \App\Exceptions\FailedAddEditGlobalException("failed add new letter", 400);
             }
         } catch (\ValidateException $e) {
-        } catch (\FailedAddLetterDispositionException $e) {
+        } catch (\FailedAddEditGlobalException $e) {
         }
         return response([
             "api_version" => "1.0",

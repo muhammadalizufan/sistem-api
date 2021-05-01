@@ -78,16 +78,62 @@
                         "value": "SIAP.Disposition.Level.E"
                     },
                     {
-                        "title": "Decision",
-                        "value": "SIAP.Disposition.Decision"
-                    },
-                    {
-                        "title": "Responder",
-                        "value": "SIAP.Disposition.Responders"
-                    },
-                    {
                         "title": "Send",
                         "value": "SIAP.Disposition.Send"
+                    }
+                ]
+            },
+            {
+                "title": "Permintaan Data",
+                "value": "SIAP.RequestData",
+                "child": [
+                    {
+                        "title": "View / Search",
+                        "value": "SIAP.RequestData.ViewSearch"
+                    },
+                    {
+                        "title": "Detail",
+                        "value": "SIAP.RequestData.ViewDetail"
+                    },
+                    {
+                        "title": "Administator",
+                        "value": "SIAP.RequestData.Administrator"
+                    },
+                    {
+                        "title": "Responders",
+                        "value": "SIAP.RequestData.Responders"
+                    },
+                    {
+                        "title": "Requester",
+                        "value": "SIAP.RequestData.Requester"
+                    },
+                    {
+                        "title": "Level Z",
+                        "value": "SIAP.RequestData.Level.Z"
+                    },
+                    {
+                        "title": "Level A",
+                        "value": "SIAP.RequestData.Level.A"
+                    },
+                    {
+                        "title": "Level A2",
+                        "value": "SIAP.RequestData.Level.A2"
+                    },
+                    {
+                        "title": "Level B",
+                        "value": "SIAP.RequestData.Level.B"
+                    },
+                    {
+                        "title": "Level C",
+                        "value": "SIAP.RequestData.Level.C"
+                    },
+                    {
+                        "title": "Level D",
+                        "value": "SIAP.RequestData.Level.D"
+                    },
+                    {
+                        "title": "Level E",
+                        "value": "SIAP.RequestData.Level.E"
                     }
                 ]
             }

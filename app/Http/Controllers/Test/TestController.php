@@ -28,33 +28,6 @@ class TestController extends Controller
 
     public function AddTestDummy(Request $r)
     {
-        // {
-        //     "title": "Permintaan Data",
-        //     "value": "SIAP.RequestData",
-        //     "child": [
-        //         {
-        //             "title": "View / Search",
-        //             "value": "SIAP.RequestData.ViewSearch"
-        //         },
-        //         {
-        //             "title": "Detail",
-        //             "value": "SIAP.RequestData.ViewDetail"
-        //         },
-        //         {
-        //             "title": "Responders",
-        //             "value": "SIAP.RequestData.Responders"
-        //         },
-        //         {
-        //             "title": "Requester",
-        //             "value": "SIAP.RequestData.Requester"
-        //         },
-        //         {
-        //             "title": "Administator",
-        //             "value": "SIAP.RequestData.Administrator"
-        //         }
-        //     ]
-        // },
-
         $Array = collect([
             [
                 "group" => [
@@ -100,8 +73,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
@@ -176,8 +148,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
@@ -200,7 +171,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -232,8 +203,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
@@ -256,7 +226,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -288,8 +258,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
@@ -312,7 +281,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -344,8 +313,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
@@ -368,7 +336,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -400,8 +368,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
@@ -424,7 +391,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -455,7 +422,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Edit",
                         "SIAP.Disposition.Level.Z",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
@@ -508,8 +475,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "Setting.UserProfile",
                         "Setting.UserProfile.View",
@@ -536,7 +502,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -568,8 +534,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
@@ -592,7 +557,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -624,8 +589,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
@@ -648,7 +612,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -680,8 +644,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "Setting.UserProfile",
                         "Setting.UserProfile.View",
@@ -708,7 +671,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -736,8 +699,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "Setting.UserProfile",
                         "Setting.UserProfile.View",
@@ -764,7 +726,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -792,8 +754,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "Setting.UserProfile",
                         "Setting.UserProfile.View",
@@ -820,7 +781,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -852,8 +813,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "Setting.UserProfile",
                         "Setting.UserProfile.View",
@@ -880,7 +840,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -908,8 +868,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "Setting.UserProfile",
                         "Setting.UserProfile.View",
@@ -936,7 +895,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
@@ -964,8 +923,7 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Decision",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.Disposition.Send",
                         "Setting.UserProfile",
                         "Setting.UserProfile.View",
@@ -992,7 +950,7 @@ class TestController extends Controller
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
                         "SIAP.Disposition.Comment",
-                        "SIAP.Disposition.Responders",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
