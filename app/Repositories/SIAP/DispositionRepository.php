@@ -111,7 +111,7 @@ trait DispositionRepository
             $Type = ["Administator", "Decision", "Responder", "Supervisor"];
             $UTypeArr = collect([]);
 
-            if (\in_array($uid, array_merge([$r->UserData->id], $UAdmin ?? []))) {
+            if (in_array($uid, array_merge([$r->UserData->id], $UAdmin ?? []))) {
                 $UTypeArr->push($Type[0]);
             }
 
