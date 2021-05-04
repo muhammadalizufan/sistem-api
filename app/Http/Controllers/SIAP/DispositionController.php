@@ -36,6 +36,7 @@ class DispositionController extends Controller
             $UP = $UP->whereHas("Role", function ($q) use ($r) {
                 $q->where('name', 'LIKE', $r->input('name', '') . "%");
             });
+
             if ($DecisionOnly == '1') {
                 $PIDs = Permission::whereIn("name", [
                     "SIAP.Disposition.Level.A",
@@ -90,12 +91,18 @@ class DispositionController extends Controller
         }
 
         $Ps = Permission::whereIn("name", $PLevels)->where("is_active", 1)->get();
-
         $PIDs = $Ps->map(function ($i) {
             return $i['id'];
         })->toArray();
 
-        $UPID = UserPermission::where("user_id", $r->UserData->id)->whereIn("permission_id", $PIDs)->first()->permission_id ?? 0;
+        $UPID = UserPermission::select("permission_id")
+            ->where(
+                "user_id",
+                $r->UserData->id,
+            )
+            ->whereIn("permission_id", $PIDs)
+            ->first()->permission_id ?? 0;
+
         $Code = substr(Permission::where("id", $UPID)->where("is_active", 1)->first()->name ?? "", -1);
 
         $PIDs = $Ps->map(function ($i) use ($Privilages, $Code) {
@@ -144,11 +151,16 @@ class DispositionController extends Controller
                     "ref_id" => $Payload['ref_id'],
                     "ref_type" => "Disposition",
                 ])->where("user_type", "LIKE", "%Decision%")->first()->forward_to;
+
                 $D = Comment::with(["User"])->where([
                     "ref_id" => $Payload['ref_id'],
                     "ref_type" => "Disposition",
                     "created_by" => $FID ?? 0,
                 ])->first();
+
+                $Payload['disposition']['file'] = collect($Payload['disposition']['file'] ?? [])->map(function ($i) {
+                    return $i['file'];
+                })->toArray();
 
                 // User
                 $Payload['user'] = [
@@ -226,7 +238,8 @@ class DispositionController extends Controller
             'from' => 'required|string',
             'dateline' => ($isEdit ? '' : 'required|') . 'string|in:OneDay,TwoDay,ThreeDay',
             'cat_name' => 'required|string',
-            'file_id' => 'required|integer|min:1',
+            'file' => 'required|min:1|array',
+            'file.*' => 'required',
             'desc' => 'string',
             'note' => 'string',
             'tags' => 'array',

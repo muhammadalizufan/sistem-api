@@ -12,9 +12,9 @@ class UploadController extends Controller
     public function Handler(Request $r)
     {
         $this->validate($r, [
-            'file' => 'required|max:15360', // anything but max size: 15 MB
+            'files' => 'required', // anything but max size: 15 MB
+            'files.*' => 'required|max:15360',
         ]);
-        $file = $r->file("file");
 
         $basepath = '/public/storage';
         $date = date("Y-m-d");
@@ -23,25 +23,37 @@ class UploadController extends Controller
             mkdir($path, 0777, true);
         }
 
-        $ext = $file->extension();
-        $name = time() . "-" . Helpers::QuickRandom();
-        $fullname = $name . ".$ext";
-        $file->move($path, $fullname);
+        $data = [];
+        foreach ($r->file("files") as $file) {
+            $ext = $file->extension();
+            $name = time() . "-" . Helpers::QuickRandom();
+            $fullname = $name . ".$ext";
+            $file->move($path, $fullname);
+            array_push($data, [
+                "ext" => $ext,
+                "name" => $name,
+                "fullname" => $fullname,
+            ]);
+        }
 
-        $F = File::create([
-            'name' => $name,
-            'fullname' => $fullname,
-            'ref_type' => "",
-            'ref_id' => 0,
-            'ext' => $ext,
-            'path' => $basepath,
-        ]);
+        $result = [];
+        foreach ($data as $k => $v) {
+            $F = File::create([
+                'name' => $v['name'],
+                'fullname' => $v['fullname'],
+                'ref_type' => "",
+                'ref_id' => 0,
+                'ext' => $v['ext'],
+                'path' => $basepath . "/" . $date,
+            ]);
+            array_push($result, [
+                'id' => $F->id ?? 0,
+                'name' => $v['name'],
+                'file' => $v['fullname'],
+                'url' => URL::to('/storage/' . $date . '/' . $v['fullname']),
+            ]);
+        }
 
-        return response([
-            'id' => $F->id ?? 0,
-            'name' => $name,
-            'file' => $fullname,
-            'url' => URL::to('/storage/' . $date . '/' . $fullname),
-        ]);
+        return response($result, 200);
     }
 }

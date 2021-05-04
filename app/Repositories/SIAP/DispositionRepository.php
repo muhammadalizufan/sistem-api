@@ -9,6 +9,7 @@ use App\Models\Account\UserPermission;
 use App\Models\Extension\Category;
 use App\Models\Extension\File;
 use App\Models\SIAP\Comment;
+use App\Models\SIAP\FileIncomingLetter;
 use App\Models\SIAP\Inbox;
 use App\Models\SIAP\IncomingLetter;
 use App\Models\SIAP\Tag;
@@ -41,7 +42,6 @@ trait DispositionRepository
             $r->all([
                 'title',
                 'from',
-                'file_id',
                 'desc',
                 'dateline',
                 'note',
@@ -57,12 +57,38 @@ trait DispositionRepository
             ]
         );
 
+        $F = File::whereIn('id', $r->input('file', []));
+        $Files = $F->get();
+        if (!is_object($Files)) {
+            return false;
+        }
+
         $IL = IncomingLetter::create($Data);
         if (!is_object($IL)) {
-            return [
-                "status" => false,
-                "message" => "failed add new letter",
-            ];
+            return false;
+        }
+
+        $AddDate = function (array $array = []) {
+            return array_merge($array, [
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ]);
+        };
+
+        if (is_object($Files)) {
+            $F->update([
+                'ref_type' => "Disposition",
+                'ref_id' => $IL->id,
+                'is_used' => 1,
+            ]);
+            FileIncomingLetter::insert(
+                $Files->map(function ($i) use ($IL, $AddDate) {
+                    return $AddDate([
+                        "incoming_letter_id" => $IL->id,
+                        "file_id" => $i['id'],
+                    ]);
+                })->toArray(),
+            );
         }
 
         (new ExtensionRepository())->AddActivity([
@@ -74,23 +100,12 @@ trait DispositionRepository
             'message_en' => "Adding a new disposition letter",
         ]);
 
-        $F = File::find($r->input('file_id', 0));
-        $F->update([
-            'ref_type' => "Disposition",
-            'ref_id' => $IL->id,
-            'is_used' => 1,
-        ]);
-
-        $AddDate = function (array $array = []) {
-            return array_merge($array, [
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
-        };
-
         $SPVs = [];
         if (!$r->private) {
-            $PIDs = Permission::whereIn("name", ["SIAP.Disposition.Level.A", "SIAP.Disposition.Level.B"])->get()->map(function ($i) {
+            $PIDs = Permission::whereIn("name", [
+                "SIAP.Disposition.Level.A",
+                "SIAP.Disposition.Level.B",
+            ])->get()->map(function ($i) {
                 return $i['id'];
             })->toArray();
             $UPs = UserPermission::whereIn("permission_id", $PIDs)->where("is_active", 1);
@@ -107,11 +122,15 @@ trait DispositionRepository
             return $i['user_id'];
         })->toArray();
 
-        foreach (array_unique(array_merge($r->user_responders ?? [], $r->user_supervisors ?? [], $SPVs ?? [], $UAdmin ?? [], [$r->UserData->id, $r->user_decision])) as $uid) {
-            $Type = ["Administator", "Decision", "Responder", "Supervisor"];
-            $UTypeArr = collect([]);
+        $Responders = $r->user_responders ?? [];
+        $Supervisors = array_merge($r->user_supervisors ?? [], $SPVs ?? []);
+        $Admins = array_merge($Admins ?? [], [$r->UserData->id]);
 
-            if (in_array($uid, array_merge([$r->UserData->id], $UAdmin ?? []))) {
+        foreach (array_unique(array_merge($Responders, $Supervisors, $SPVs, $Admins, [$r->user_decision])) as $uid) {
+            $Type = ["Administator", "Decision", "Responder", "Supervisor"];
+
+            $UTypeArr = collect([]);
+            if (in_array($uid, $UAdmin)) {
                 $UTypeArr->push($Type[0]);
             }
 
@@ -119,24 +138,22 @@ trait DispositionRepository
                 $UTypeArr->push($Type[1]);
             }
 
-            if (in_array($uid, $r->user_responders ?? [])) {
+            if (in_array($uid, $Responders)) {
                 $UTypeArr->push($Type[2]);
             }
 
-            if (in_array($uid, array_merge($r->user_supervisors ?? [], $SPVs ?? []))) {
-                if (!in_array($uid, array_merge($r->user_responders ?? [], $UAdmin ?? [], [$r->user_decision, $r->UserData->id]))) {
+            if (in_array($uid, $Supervisors)) {
+                if (!in_array($uid, array_merge($Responders, $Admins))) {
                     $UTypeArr->push($Type[3]);
                 }
             }
 
-            $Data->push(
-                $AddDate([
-                    'ref_id' => $IL->id,
-                    'ref_type' => "Disposition",
-                    'forward_to' => $uid,
-                    'user_type' => implode(",", $UTypeArr->toArray()),
-                ])
-            );
+            $Data->push($AddDate([
+                'ref_id' => $IL->id,
+                'ref_type' => "Disposition",
+                'forward_to' => $uid,
+                'user_type' => implode(",", $UTypeArr->toArray()),
+            ]));
         }
 
         if (!Inbox::insert($Data->toArray())) {
@@ -179,8 +196,9 @@ trait DispositionRepository
             return false;
         }
 
-        $F = File::find($r->file_id);
-        if (!is_object($F)) {
+        $File = File::whereIn('id', $r->file);
+        $Files = $File->get();
+        if (!is_object($Files)) {
             return false;
         }
 
@@ -199,12 +217,10 @@ trait DispositionRepository
             }
         }
 
-        $FOld = $IL->file_id;
         $Data = array_merge(
             $r->all([
                 'title',
                 'from',
-                'file_id',
                 'desc',
                 'dateline',
                 'note',
@@ -216,14 +232,41 @@ trait DispositionRepository
         );
         $IL->update($Data);
 
-        if ($FOld != $r->file_id) {
-            File::where('id', $FOld)->delete();
-            $F->update([
-                'ref_type' => "Disposition",
-                'ref_id' => $IL->id,
-                'is_used' => 1,
-            ]);
+        $FileTrash = File::withTrashed()->where([
+            'ref_id' => $r->id,
+            'ref_type' => 'Disposition',
+        ]);
+        $FileTrashIL = FileIncomingLetter::withTrashed()->where([
+            'incoming_letter_id' => $r->id,
+        ]);
+
+        foreach ($r->file as $id) {
+            $q = [
+                'id' => $id,
+                'ref_id' => $r->id,
+                'ref_type' => 'Disposition',
+            ];
+            if (is_object(File::onlyTrashed()->where($q)->first())) {
+                File::where($q)->restore();
+            }
+            $q = [
+                'incoming_letter_id' => $r->id,
+                'file_id' => $id,
+            ];
+            if (is_object(FileIncomingLetter::onlyTrashed()->where($q)->first())) {
+                FileIncomingLetter::where($q)->restore();
+            } else if (!is_object(FileIncomingLetter::withTrashed()->where($q)->first())) {
+                FileIncomingLetter::create($q);
+            }
         }
+        $FileTrash->whereNotIn('id', $r->file)->delete();
+        $FileTrashIL->whereNotIn('file_id', $r->file)->delete();
+
+        $File->update([
+            'ref_type' => "Disposition",
+            'ref_id' => $IL->id,
+            'is_used' => 1,
+        ]);
 
         (new ExtensionRepository())->AddActivity([
             'user_id' => $r->UserData->id,
@@ -250,7 +293,11 @@ trait DispositionRepository
             })->toArray();
         }
 
-        $AllUser = array_unique(array_merge($r->user_responders ?? [], $r->user_supervisors ?? [], $SPVs ?? [], [$r->user_decision]));
+        $Responders = $r->user_responders ?? [];
+        $Supervisors = array_unique(array_merge($r->user_supervisors ?? [], $SPVs ?? []));
+        $Admins = array_unique(array_merge($Admins ?? [], [$r->UserData->id]));
+
+        $AllUser = array_unique(array_merge($Responders, $Supervisors, [$r->user_decision]));
         $OldUIDs = Inbox::where($Query)->get()->map(function ($i) {
             return $i['forward_to'];
         })->toArray();
@@ -264,26 +311,11 @@ trait DispositionRepository
         $DeleteUser = $DeleteUser->toArray();
 
         $CreateComment = function ($uid) use ($Query) {
-            $C = Comment::withTrashed()->where(array_merge($Query, [
-                'created_by' => $uid,
-            ]));
-            if (is_null($C->first())) {
-                Comment::create(array_merge($Query, [
-                    'created_by' => $uid,
-                    'comment' => null,
-                ]));
-            } else {
-                if (is_object(
-                    Comment::onlyTrashed()->where(array_merge($Query, [
-                        'created_by' => $uid,
-                    ]))->first()
-                )) {
-                    $C->update([
-                        'comment' => null,
-                    ]);
-                    $C->restore();
-                }
-            }
+            (new CommentRepository())->CreateComment($Query, $uid);
+        };
+
+        $CheckRD = function ($uid) use ($Responders, $r) {
+            return in_array($uid, array_unique(array_merge($Responders, [$r->user_decision])));
         };
 
         foreach ($AllUser as $uid) {
@@ -292,34 +324,31 @@ trait DispositionRepository
             if ($uid == $r->user_decision) {
                 $UTypeArr->push($Type[0]);
             }
-            if (in_array($uid, $r->user_responders ?? [])) {
+
+            if (in_array($uid, $Responders)) {
                 $UTypeArr->push($Type[1]);
             }
-            if (in_array($uid, array_unique(array_merge($r->user_supervisors ?? [], $SPVs ?? [])))) {
-                if (!in_array($uid, array_merge($r->user_responders ?? [], [$r->user_decision]))) {
-                    $UTypeArr->push($Type[2]);
-                }
+
+            if (in_array($uid, $Supervisors) && !$CheckRD($uid)) {
+                $UTypeArr->push($Type[2]);
             }
 
             $I = Inbox::onlyTrashed()->where(array_merge($Query, [
                 'forward_to' => $uid,
             ]));
 
+            // Check Has Already Inbox
             if (is_object($I->first())) {
-                if (!in_array($uid, array_unique(array_merge($r->user_supervisors ?? [], $SPVs ?? [])))) {
-                    if (in_array($uid, array_merge($r->user_responders ?? [], [$r->user_decision]))) {
-                        $CreateComment($uid);
-                    }
+                if ($CheckRD($uid)) {
+                    $CreateComment($uid);
                 }
                 $I->update([
                     'user_type' => implode(",", $UTypeArr->toArray()),
                 ]);
                 $I->restore();
             } else {
-                if (!in_array($uid, array_unique(array_merge($r->user_supervisors ?? [], $SPVs ?? [])))) {
-                    if (in_array($uid, array_merge($r->user_responders ?? [], [$r->user_decision]))) {
-                        $CreateComment($uid);
-                    }
+                if ($CheckRD($uid)) {
+                    $CreateComment($uid);
                 }
                 $Check = Inbox::where(array_merge($Query, [
                     'forward_to' => $uid,
@@ -386,26 +415,7 @@ trait DispositionRepository
         })->toArray();
 
         $CreateComment = function ($uid) use ($Query) {
-            $C = Comment::withTrashed()->where(array_merge($Query, [
-                'created_by' => $uid,
-            ]));
-            if (is_null($C->first())) {
-                Comment::create(array_merge($Query, [
-                    'created_by' => $uid,
-                    'comment' => null,
-                ]));
-            } else {
-                if (is_object(
-                    Comment::onlyTrashed()->where(array_merge($Query, [
-                        'created_by' => $uid,
-                    ]))->first()
-                )) {
-                    $C->update([
-                        'comment' => null,
-                    ]);
-                    $C->restore();
-                }
-            }
+            (new CommentRepository())->CreateComment($Query, $uid);
         };
 
         $HasChange = false;

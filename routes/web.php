@@ -19,7 +19,7 @@ $router->get('/', function () use ($router) {
 
 $router->group(["prefix" => "api"], function () use ($router) {
     $router->group(["prefix" => "v1"], function () use ($router) {
-        $router->group(['namespace' => 'File', "prefix" => "file"], function () use ($router) {
+        $router->group(['namespace' => 'File', "prefix" => "file", "middleware" => ["auth.private"]], function () use ($router) {
             $router->post('upload', 'UploadController@Handler');
         });
 

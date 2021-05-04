@@ -73,7 +73,11 @@ class RequestData extends Model
 
     public function getStatusRequestAttribute()
     {
-        switch ($this->attributes['status']) {
+        if (is_null($this->attributes['status'] ?? null)) {
+            return null;
+        }
+
+        switch ($this->attributes['status'] ?? "") {
             case 0:
                 return "Process";
                 break;

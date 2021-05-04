@@ -75,6 +75,9 @@ class IncomingLetter extends Model
 
     public function getDatelineTypeAttribute()
     {
+        if (is_null($this->attributes['created_at'] ?? null) || is_null($this->attributes['dateline'] ?? null)) {
+            return null;
+        }
         switch (date_diff(date_create($this->attributes['created_at']), date_create($this->attributes['dateline']))->d) {
             case 1:
                 return "OneDay";
@@ -93,12 +96,18 @@ class IncomingLetter extends Model
 
     public function getTagsAttribute()
     {
+        if (is_null($this->attributes['tags'] ?? null)) {
+            return null;
+        }
         return Tag::whereIn('id', explode(',', $this->attributes['tags'] ?? ""))->get()->toArray() ?? null;
     }
 
     public function getStatusLetterAttribute()
     {
-        switch ($this->attributes['status']) {
+        if (is_null($this->attributes['status'] ?? null)) {
+            return null;
+        }
+        switch ($this->attributes['status'] ?? null) {
             case 0:
                 return "Process";
                 break;
@@ -116,7 +125,7 @@ class IncomingLetter extends Model
 
     public function File()
     {
-        return $this->hasOne(File::class, "id", "file_id")->select("id", "name", "fullname", "created_at", "updated_at");
+        return $this->hasMany(FileIncomingLetter::class, "incoming_letter_id", "id")->with("File");
     }
 
     public function Category()

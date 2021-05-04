@@ -55,6 +55,9 @@ class File extends Model
 
     public function getUrlAttribute()
     {
+        if (is_null($this->attributes['created_at'] ?? null)) {
+            return null;
+        }
         $time = date("Y-m-d", strtotime($this->attributes['created_at']));
         return URL::to("/storage/$time/" . $this->attributes['fullname']);
     }

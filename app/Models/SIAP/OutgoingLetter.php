@@ -70,7 +70,11 @@ class OutgoingLetter extends Model
 
     public function getStatusLetterAttribute()
     {
-        switch ($this->attributes['status']) {
+        if (is_null($this->attributes['status'] ?? null)) {
+            return null;
+        }
+
+        switch ($this->attributes['status'] ?? null) {
             case 0:
                 return "Process";
                 break;
