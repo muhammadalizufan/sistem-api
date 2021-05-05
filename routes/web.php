@@ -183,7 +183,6 @@ $router->group(["prefix" => "api"], function () use ($router) {
                     "uses" => "DispositionController@AddResponderLetterHandler",
                 ]);
                 $router->post("comment", [
-                    // "permission" => "SIAP.Disposition.Comment",
                     "uses" => "DispositionController@CommentLetterHandler",
                 ]);
                 $router->post("send", [
@@ -201,25 +200,27 @@ $router->group(["prefix" => "api"], function () use ($router) {
                     "permission" => "SIAP.RequestData.ViewDetail",
                     "uses" => "RequestDataController@GetRequestDataInbox",
                 ]);
-                $router->get("responders", [
-                    "permission" => "SIAP.RequestData.Administrator",
-                    "uses" => "RequestDataController@GetRequestDataResponders",
+                $router->get("confirmers", [
+                    "uses" => "RequestDataController@GetRequestDataConfirmers",
                 ]);
 
                 $router->post("add", [
-                    "permission" => "SIAP.RequestData.Requester",
+                    "permission" => "SIAP.RequestData.Level.D",
                     "uses" => "RequestDataController@AddRequestDataHandler",
                 ]);
-                $router->post("comment/{id:[0-9]+}", [
-                    "permission" => "SIAP.RequestData.Responders",
+                $router->post("update/{id:[0-9]+}", [
+                    "permission" => "SIAP.RequestData.Level.D",
+                    "uses" => "RequestDataController@EditRequestDataHandler",
+                ]);
+                $router->post("comment", [
                     "uses" => "RequestDataController@CommentRequestDataHandler",
                 ]);
-                $router->post("add-confirmer/{id:[0-9]+}", [
-                    "permission" => "SIAP.RequestData.Administrator",
+                $router->post("add-confirmer", [
+                    "permission" => "SIAP.RequestData.Level.Z",
                     "uses" => "RequestDataController@AddConfirmerRequestDataHandler",
                 ]);
-                $router->post("confirmation/{id:[0-9]+}", [
-                    "permission" => "SIAP.RequestData.Administrator",
+                $router->post("confirmation", [
+                    "permission" => "SIAP.RequestData.Level.Z",
                     "uses" => "RequestDataController@ConfirmationRequestDataHandler",
                 ]);
             });

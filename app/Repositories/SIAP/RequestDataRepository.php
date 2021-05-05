@@ -17,7 +17,6 @@ trait RequestDataRepository
     {
         $RD = RequestData::create(array_merge(
             $r->all([
-                'requested_data',
                 'requester',
                 'agency',
                 'phone',
@@ -65,32 +64,38 @@ trait RequestDataRepository
             return $i['user_id'];
         })->toArray();
 
+        $Confirmers = array_unique($r->user_confirmers ?? []);
+        $Supervisors = array_unique($SPVs ?? []);
+        $Admins = array_unique($UAdmin ?? []);
+
         $Data = collect([]);
 
-        foreach (array_unique(array_merge($r->user_confirmers ?? [], $SPVs ?? [], $UAdmin ?? [], [$r->UserData->id])) as $uid) {
-            $Type = ["Administator", "Confirmer", "Supervisor"];
+        foreach (array_unique(array_merge($Confirmers, $Supervisors, $Admins, [$r->UserData->id])) as $uid) {
+            $Type = ["Administator", "Creator", "Confirmer", "Supervisor"];
             $UTypeArr = collect([]);
 
-            if (in_array($uid, array_merge([$r->UserData->id], $UAdmin ?? []))) {
+            if (in_array($uid, $Admins)) {
                 $UTypeArr->push($Type[0]);
             }
 
-            if (in_array($uid, $r->user_confirmers ?? [])) {
+            if ($uid == $r->UserData->id) {
                 $UTypeArr->push($Type[1]);
             }
 
-            if (in_array($uid, array_merge($SPVs ?? [])) && !in_array($uid, array_merge($r->user_confirmers ?? [], $UAdmin ?? [], [$r->UserData->id]))) {
+            if (in_array($uid, $Confirmers)) {
                 $UTypeArr->push($Type[2]);
             }
 
-            $Data->push(
-                $AddDate([
-                    'ref_id' => $RD->id,
-                    'ref_type' => "RequestData",
-                    'forward_to' => $uid,
-                    'user_type' => implode(",", $UTypeArr->toArray()),
-                ])
-            );
+            if (in_array($uid, $Supervisors) && !in_array($uid, array_merge($Confirmers, $Admins))) {
+                $UTypeArr->push($Type[3]);
+            }
+
+            $Data->push($AddDate([
+                'ref_id' => $RD->id,
+                'ref_type' => "RequestData",
+                'forward_to' => $uid,
+                'user_type' => implode(",", $UTypeArr->toArray()),
+            ]));
         }
 
         if (!Inbox::insert($Data->toArray())) {
@@ -129,15 +134,17 @@ trait RequestDataRepository
         if (!is_object($F)) {
             return false;
         }
-        $FOld = $RD->file_id;
+        $FOld = $RD->file_original_id;
+
         $Data = array_merge(
             $r->all([
-                'requested_data',
                 'requester',
                 'agency',
                 'phone',
                 'desc',
-            ])
+            ]), [
+                'file_original_id' => $r->input('file_id', 0),
+            ]
         );
         $RD->update($Data);
 
@@ -155,14 +162,38 @@ trait RequestDataRepository
             'ref_type' => "RequestData",
             'ref_id' => $r->id,
             'action' => "Edit",
-            'message_id' => "Merubah surat disposisi",
+            'message_id' => "Merubah surat permintaan data",
             'message_en' => "Editing a RequestData letter",
         ]);
+
+        return true;
+    }
+
+    public function AddConfirmerRequestData(Request $r)
+    {
+        $RD = RequestData::find($r->request_data_id);
+        if (!is_object($RD) || in_array($RD->status, [1, 2])) {
+            return false;
+        }
 
         $Query = [
             'ref_id' => $RD->id,
             'ref_type' => "RequestData",
         ];
+
+        $OldUIDs = Inbox::where(array_merge($Query, [
+            "user_type" => "Confirmer",
+        ]))->get()->map(function ($i) {
+            return $i['forward_to'];
+        })->toArray();
+
+        $DeleteUser = collect([]);
+        foreach (array_unique($OldUIDs) as $olduid) {
+            if (!in_array($olduid, $r->to ?? [])) {
+                $DeleteUser->push($olduid);
+            }
+        }
+        $DeleteUser = $DeleteUser->toArray();
 
         $PIDs = Permission::whereIn("name", ["SIAP.RequestData.Level.A", "SIAP.RequestData.Level.B"])->get()->map(function ($i) {
             return $i['id'];
@@ -172,52 +203,21 @@ trait RequestDataRepository
             return $i['user_id'];
         })->toArray();
 
-        $AllUser = array_unique(array_merge($r->user_confirmers ?? [], $SPVs ?? []));
-        $OldUIDs = Inbox::where($Query)->get()->map(function ($i) {
-            return $i['forward_to'];
-        })->toArray();
-
-        $DeleteUser = collect([]);
-        foreach (array_unique($OldUIDs) as $olduid) {
-            if (!in_array($olduid, array_unique(array_merge($AllUser, [$r->UserData->id])))) {
-                $DeleteUser->push($olduid);
-            }
-        }
-        $DeleteUser = $DeleteUser->toArray();
-
         $CreateComment = function ($uid) use ($Query) {
-            $C = Comment::withTrashed()->where(array_merge($Query, [
-                'created_by' => $uid,
-            ]));
-            if (is_null($C->first())) {
-                Comment::create(array_merge($Query, [
-                    'created_by' => $uid,
-                    'comment' => null,
-                ]));
-            } else {
-                if (is_object(
-                    Comment::onlyTrashed()->where(array_merge($Query, [
-                        'created_by' => $uid,
-                    ]))->first()
-                )) {
-                    $C->update([
-                        'comment' => null,
-                    ]);
-                    $C->restore();
-                }
-            }
+            (new CommentRepository())->CreateComment($Query, $uid);
         };
-
-        foreach ($AllUser as $uid) {
+        $Confirmers = array_unique($r->to ?? []);
+        $Supervisors = array_unique($SPVs ?? []);
+        foreach (\array_merge($Confirmers, $Supervisors) as $uid) {
             $Type = ["Confirmer", "Supervisor"];
             $UTypeArr = collect([]);
-            if (in_array($uid, $r->user_confirmers ?? [])) {
-                $UTypeArr->push($Type[1]);
+
+            if (in_array($uid, $Confirmers)) {
+                $UTypeArr->push($Type[0]);
             }
-            if (in_array($uid, array_unique(array_merge($r->user_confirmers ?? [], $SPVs ?? [])))) {
-                if (!in_array($uid, array_merge($r->user_confirmers ?? []))) {
-                    $UTypeArr->push($Type[2]);
-                }
+
+            if (in_array($uid, $Supervisors)) {
+                $UTypeArr->push($Type[1]);
             }
 
             $I = Inbox::onlyTrashed()->where(array_merge($Query, [
@@ -225,20 +225,16 @@ trait RequestDataRepository
             ]));
 
             if (is_object($I->first())) {
-                if (!in_array($uid, array_unique(array_merge($SPVs ?? [])))) {
-                    if (in_array($uid, array_merge($r->user_confirmers ?? []))) {
-                        $CreateComment($uid);
-                    }
+                if (in_array($uid, $Confirmers)) {
+                    $CreateComment($uid);
                 }
                 $I->update([
-                    'user_type' => implode(",", $UTypeArr->toArray()),
+                    'user_type' => "Confirmer",
                 ]);
                 $I->restore();
             } else {
-                if (!in_array($uid, array_unique(array_merge($SPVs ?? [])))) {
-                    if (in_array($uid, array_merge($r->user_confirmers ?? []))) {
-                        $CreateComment($uid);
-                    }
+                if (in_array($uid, $Confirmers)) {
+                    $CreateComment($uid);
                 }
                 $Check = Inbox::where(array_merge($Query, [
                     'forward_to' => $uid,
@@ -262,10 +258,19 @@ trait RequestDataRepository
             Comment::where($Query)->whereIn('created_by', $DeleteUser)->delete();
         }
 
+        (new ExtensionRepository())->AddActivity([
+            'user_id' => $r->UserData->id,
+            'ref_id' => $RD->id,
+            'ref_type' => "RequestData",
+            'action' => "AddConfirmer",
+            'message_id' => "Menambahkan penanggap pada surat permintaan data",
+            'message_en' => "Add a responder at request data letter",
+        ]);
+
         return true;
     }
 
-    public function CommentForwardRequestData(Request $r)
+    public function CommentRequestData(Request $r)
     {
         $C = Comment::find($r->input('comment_id', 0));
         if (!is_object($C)) {
@@ -288,17 +293,20 @@ trait RequestDataRepository
 
     public function ConfirmationRequestData(Request $r)
     {
-        $RD = RequestData::find($r->input('request_data_id', 0));
+        $RD = RequestData::find($r->request_data_id);
         if (!is_object($RD)) {
-            return [
-                'status' => false,
-                'message' => 'failed confirmation on requested data',
-            ];
+            return false;
+        }
+
+        $F = File::find($r->file_id);
+        $FOld = $RD->file_edited_id;
+        if (!is_object($F)) {
+            return false;
         }
 
         $status = 0;
         $translateMsg = "";
-        switch ($r->input('status', 'Process')) {
+        switch ($r->input('status', 'Reject')) {
             case 'Approve':
                 $status = 1;
                 $translateMsg = "diterima";
@@ -307,44 +315,38 @@ trait RequestDataRepository
                 $status = 2;
                 $translateMsg = "ditolak";
                 break;
-            case 'Process':
-                $status = 0;
-                $translateMsg = "proses";
-                break;
         }
 
         $RD->update([
-            'file_edited_id' => $r->input('file_id'),
+            'file_edited_id' => $r->file_id,
             'status' => $status,
         ]);
 
-        // Update reference id on files table
-        $F = File::find($r->input('file_id', 0));
-        $F->update([
-            'ref_type' => "RequestData",
-            'ref_id' => $RD->id,
-            'is_used' => 1,
-        ]);
+        if ($FOld != $r->file_id) {
+            File::where('id', $FOld)->delete();
+            $F->update([
+                'ref_id' => $RD->id,
+                'ref_type' => "RequestData",
+                'is_used' => 1,
+            ]);
+        }
 
         $CreateActivity = function (string $messageId = "", string $messageEn = "") use ($r, $RD) {
             (new ExtensionRepository())->AddActivity([
                 'user_id' => $r->input('user_id', 0),
-                'ref_type' => 2, // Outgoing Letter
+                'ref_type' => "RequestData",
                 'ref_id' => $RD->id,
-                'action' => "EditOutgoingLetter",
+                'action' => "EditRequestData",
                 'message_id' => $messageId,
                 'message_en' => $messageEn,
             ]);
         };
 
-        // if old status letter edited and cannot same status
         if ($RD->status != $status) {
             $translateMsgEn = \strtolower($r->input('status', ''));
-            $CreateActivity("Merubah status surat keluar menjadi {$translateMsg}", "Change the outgoing mail status to {$translateMsgEn}");
+            $CreateActivity("Merubah status surat permintaan data menjadi {$translateMsg}", "Change the request data letter status to {$translateMsgEn}");
         }
 
-        return [
-            'status' => true,
-        ];
+        return true;
     }
 }

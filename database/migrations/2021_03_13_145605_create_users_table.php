@@ -20,8 +20,6 @@ class CreateUsersTable extends Migration
             $table->string("email")->default("");
             $table->string("password")->default("");
             $table->string("pin")->default("");
-            $table->string("access_token")->default("");
-            $table->boolean("use_twofa")->default(0)->comment("0 = InActive; 1 = Active;");
             $table->tinyInteger("status")->default(0)->comment("0 = InActive; 1 = Active; 2 = Locked; 3 = Blocked;");
             $table->timestamps();
             $table->softDeletes();

@@ -69,6 +69,11 @@ class Inbox extends Model
         return $this->hasOne(IncomingLetter::class, "id", "ref_id")->with("Category", "File");
     }
 
+    public function RequestData()
+    {
+        return $this->hasOne(RequestData::class, "id", "ref_id")->with(["FileOriginal", "FileEdited"]);
+    }
+
     public function User()
     {
         return $this->hasOne(User::class, "id", "forward_to")->select('id', 'name')->with("Role");

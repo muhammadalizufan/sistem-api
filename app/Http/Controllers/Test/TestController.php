@@ -38,6 +38,7 @@ class TestController extends Controller
                         "Setting.UserProfile",
                         "SIAP.Disposition",
                         "SIAP.OutgoingLetter",
+                        "SIAP.RequestData",
                     ],
                 ],
                 "role" => [
@@ -48,6 +49,7 @@ class TestController extends Controller
                         "Setting.GroupManagement.ViewDetail",
                         "Setting.GroupManagement.Add",
                         "Setting.GroupManagement.Edit",
+
                         "Setting.UserManagement",
                         "Setting.UserManagement.Member.ViewSearch",
                         "Setting.UserManagement.Member.ViewDetail",
@@ -57,10 +59,12 @@ class TestController extends Controller
                         "Setting.UserManagement.Role.ViewDetail",
                         "Setting.UserManagement.Role.Add",
                         "Setting.UserManagement.Role.Edit",
+
                         "Setting.UserProfile",
                         "Setting.UserProfile.View",
                         "Setting.UserProfile.Edit",
                         "Setting.UserProfile.ChangePassword",
+
                         "SIAP.Disposition",
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
@@ -81,6 +85,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -92,6 +107,7 @@ class TestController extends Controller
                         "Setting.GroupManagement.ViewDetail",
                         "Setting.GroupManagement.Add",
                         "Setting.GroupManagement.Edit",
+
                         "Setting.UserManagement",
                         "Setting.UserManagement.Member.ViewSearch",
                         "Setting.UserManagement.Member.ViewDetail",
@@ -101,10 +117,12 @@ class TestController extends Controller
                         "Setting.UserManagement.Role.ViewDetail",
                         "Setting.UserManagement.Role.Add",
                         "Setting.UserManagement.Role.Edit",
+
                         "Setting.UserProfile",
                         "Setting.UserProfile.View",
                         "Setting.UserProfile.Edit",
                         "Setting.UserProfile.ChangePassword",
+
                         "SIAP.Disposition",
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
@@ -112,12 +130,18 @@ class TestController extends Controller
                         "SIAP.Disposition.Edit",
                         "SIAP.Disposition.Level.Z",
                         "SIAP.Disposition.Send",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
                     ],
                 ],
             ], [
@@ -127,6 +151,7 @@ class TestController extends Controller
                         "Setting.UserProfile",
                         "SIAP.Disposition",
                         "SIAP.OutgoingLetter",
+                        "SIAP.RequestData",
                     ],
                 ],
                 "role" => [
@@ -156,6 +181,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -177,6 +213,12 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
                     ],
                 ],
             ], [
@@ -191,6 +233,7 @@ class TestController extends Controller
                         "Setting.UserProfile.View",
                         "Setting.UserProfile.Edit",
                         "Setting.UserProfile.ChangePassword",
+
                         "SIAP.Disposition",
                         "SIAP.Disposition.ViewSearch",
                         "SIAP.Disposition.ViewDetail",
@@ -203,14 +246,25 @@ class TestController extends Controller
                         "SIAP.Disposition.Level.D",
                         "SIAP.Disposition.Level.E",
                         "SIAP.Disposition.Comment",
-
                         "SIAP.Disposition.Send",
+
                         "SIAP.OutgoingLetter",
                         "SIAP.OutgoingLetter.ViewSearch",
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -221,6 +275,7 @@ class TestController extends Controller
                         "Setting.UserProfile.View",
                         "Setting.UserProfile.Edit",
                         "Setting.UserProfile.ChangePassword",
+
                         "SIAP.Disposition",
                         "SIAP.Disposition.Level.B",
                         "SIAP.Disposition.ViewSearch",
@@ -232,6 +287,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.B",
                     ],
                 ],
             ], [
@@ -266,6 +326,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -287,6 +358,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.B",
                     ],
                 ],
             ], [
@@ -321,6 +397,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -342,6 +429,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.B",
                     ],
                 ],
             ], [
@@ -376,6 +468,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -397,6 +500,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.B",
                     ],
                 ],
             ], [
@@ -406,6 +514,7 @@ class TestController extends Controller
                         "Setting.UserProfile",
                         "SIAP.Disposition",
                         "SIAP.OutgoingLetter",
+                        "SIAP.RequestData",
                     ],
                 ],
                 "role" => [
@@ -430,6 +539,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -453,6 +573,10 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
                     ],
                 ],
             ], [
@@ -487,6 +611,16 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -508,6 +642,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.C",
                     ],
                 ],
             ], [
@@ -542,6 +681,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -563,6 +713,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.D",
                     ],
                 ],
             ], [
@@ -597,6 +752,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -618,6 +784,12 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.D",
                     ],
                 ],
             ], [
@@ -627,6 +799,7 @@ class TestController extends Controller
                         "Setting.UserProfile",
                         "SIAP.Disposition",
                         "SIAP.OutgoingLetter",
+                        "SIAP.RequestData",
                     ],
                 ],
                 "role" => [
@@ -656,6 +829,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -677,6 +861,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.D",
                     ],
                 ],
             ], [
@@ -711,6 +900,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -732,6 +932,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
             ], [
@@ -766,6 +971,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -787,6 +1003,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
             ], [
@@ -796,6 +1017,7 @@ class TestController extends Controller
                         "Setting.UserProfile",
                         "SIAP.Disposition",
                         "SIAP.OutgoingLetter",
+                        "SIAP.RequestData",
                     ],
                 ],
                 "role" => [
@@ -825,6 +1047,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -846,6 +1079,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.D",
                     ],
                 ],
             ], [
@@ -880,6 +1118,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -901,6 +1150,11 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
             ], [
@@ -935,6 +1189,17 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
                         "SIAP.OutgoingLetter.Approver",
+
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.Z",
+                        "SIAP.RequestData.Level.A",
+                        "SIAP.RequestData.Level.A2",
+                        "SIAP.RequestData.Level.B",
+                        "SIAP.RequestData.Level.C",
+                        "SIAP.RequestData.Level.D",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
                 "user" => [
@@ -956,6 +1221,10 @@ class TestController extends Controller
                         "SIAP.OutgoingLetter.ViewDetail",
                         "SIAP.OutgoingLetter.Add",
                         "SIAP.OutgoingLetter.Edit",
+                        "SIAP.RequestData",
+                        "SIAP.RequestData.ViewSearch",
+                        "SIAP.RequestData.ViewDetail",
+                        "SIAP.RequestData.Level.E",
                     ],
                 ],
             ],

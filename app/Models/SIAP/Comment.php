@@ -55,6 +55,11 @@ class Comment extends Model
         return $this->hasOne(Inbox::class, "ref_id", "ref_id")->where("ref_type", "Disposition");
     }
 
+    public function RequestData()
+    {
+        return $this->hasOne(Inbox::class, "ref_id", "ref_id")->where("ref_type", "RequestData");
+    }
+
     public function User()
     {
         return $this->hasOne(User::class, "id", "created_by")->select('id', 'name')->with("Role");

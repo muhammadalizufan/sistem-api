@@ -96,19 +96,7 @@
                         "value": "SIAP.RequestData.ViewDetail"
                     },
                     {
-                        "title": "Administator",
-                        "value": "SIAP.RequestData.Administrator"
-                    },
-                    {
-                        "title": "Responders",
-                        "value": "SIAP.RequestData.Responders"
-                    },
-                    {
-                        "title": "Requester",
-                        "value": "SIAP.RequestData.Requester"
-                    },
-                    {
-                        "title": "Level Z",
+                        "title": "Level Z (Admin)",
                         "value": "SIAP.RequestData.Level.Z"
                     },
                     {

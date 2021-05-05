@@ -40,8 +40,6 @@ class User extends Model
         'email',
         'password',
         'pin',
-        'access_token',
-        'use_twofa',
         'status',
     ];
 

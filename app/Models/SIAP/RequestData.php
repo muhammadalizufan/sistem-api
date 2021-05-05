@@ -40,13 +40,13 @@ class RequestData extends Model
         'user_id',
         'cat_id',
         'code',
-        'requested_data',
+        'desc',
         'requester',
         'agency',
         'email',
         'phone',
-        'file_original',
-        'file_edited',
+        'file_original_id',
+        'file_edited_id',
         'status',
         'is_archive',
     ];
@@ -93,19 +93,14 @@ class RequestData extends Model
         }
     }
 
-    public function Responders()
-    {
-        return $this->hasMany(ForwardRequestData::class, "request_data_id", "id")->where('types', 2);
-    }
-
     public function FileOriginal()
     {
-        return $this->hasOne(File::class, "fullname", "file_original")->select("id", "name", "fullname", 'created_at');
+        return $this->hasOne(File::class, "id", "file_original_id")->select("id", "name", "fullname", 'created_at');
     }
 
     public function FileEdited()
     {
-        return $this->hasOne(File::class, "fullname", "file_edited")->select("id", "name", "fullname", 'created_at');
+        return $this->hasOne(File::class, "id", "file_edited_id")->select("id", "name", "fullname", 'created_at');
     }
 
     public function Category()
