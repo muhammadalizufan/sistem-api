@@ -58,7 +58,9 @@ trait OutgoingLetterRepository
             'message_en' => "Adding a new outgoing letter",
         ]);
 
-        return true;
+        return [
+            "id" => $OL->id,
+        ];
     }
 
     public function EditOutgoingLetter(Request $r)

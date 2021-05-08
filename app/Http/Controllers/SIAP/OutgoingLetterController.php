@@ -123,7 +123,9 @@ class OutgoingLetterController extends Controller
         try {
             ValidatorManager::ValidateJSON($r, self::AddNewLetterRule());
             $r->request->add(['user_id' => $r->UserData->id]);
-            if (!$this->SIAPRepo->AddNewOutgoingLetter($r)) {
+            $res = $this->SIAPRepo->AddNewOutgoingLetter($r);
+            $check = is_bool($res);
+            if ($check) {
                 throw new \App\Exceptions\FailedAddEditGlobalException("failed add new letter", 400);
             }
         } catch (\ValidateException $e) {
@@ -132,6 +134,9 @@ class OutgoingLetterController extends Controller
         return response([
             "api_version" => "1.0",
             "message" => "success add new letter",
+            "data" => [
+                "id" => $res["id"],
+            ],
         ], 201);
     }
 
@@ -149,6 +154,9 @@ class OutgoingLetterController extends Controller
         return response([
             "api_version" => "1.0",
             "message" => "success edit letter",
+            "data" => [
+                "id" => $id,
+            ],
         ], 200);
     }
 }
