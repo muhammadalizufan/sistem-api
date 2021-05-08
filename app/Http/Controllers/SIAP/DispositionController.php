@@ -267,7 +267,7 @@ class DispositionController extends Controller
             "api_version" => "1.0",
             "message" => "success add new letter",
             "data" => [
-                "id" => $check["id"],
+                "id" => $res["id"],
             ],
         ], 201);
     }
