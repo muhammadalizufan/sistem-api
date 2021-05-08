@@ -114,9 +114,8 @@ class OutgoingLetterController extends Controller
                 'validated_letter' => 'required|string',
                 'status' => 'required|string|in:Approve,Reject',
             ];
-        } else {
-            return self::AddNewLetterRule();
         }
+        return self::AddNewLetterRule();
     }
 
     public function AddNewLetterHandler(Request $r)

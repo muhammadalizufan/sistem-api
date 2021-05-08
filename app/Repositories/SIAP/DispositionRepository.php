@@ -189,7 +189,7 @@ trait DispositionRepository
 
     public function EditLetter(Request $r)
     {
-        Helpers::ConvertDatelineBodyToDate($r);
+        // Helpers::ConvertDatelineBodyToDate($r);
 
         $IL = IncomingLetter::find($r->id);
         if (!is_object($IL) || in_array($IL->status, [1, 2])) {
@@ -222,7 +222,7 @@ trait DispositionRepository
                 'title',
                 'from',
                 'desc',
-                'dateline',
+                // 'dateline',
                 'note',
                 'private',
             ]), [

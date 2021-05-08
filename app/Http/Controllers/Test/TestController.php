@@ -28,6 +28,45 @@ class TestController extends Controller
 
     public function AddTestDummy(Request $r)
     {
+        // {
+        //     "title": "Keluhan",
+        //     "value": "SIAP.Complaint",
+        //     "child": [
+        //         {
+        //             "title": "View / Search",
+        //             "value": "SIAP.Complaint.ViewSearch"
+        //         },
+        //         {
+        //             "title": "Detail",
+        //             "value": "SIAP.Complaint.ViewDetail"
+        //         },
+        //         {
+        //             "title": "Level Z (Admin)",
+        //             "value": "SIAP.Complaint.Level.Z"
+        //         },
+        //         {
+        //             "title": "Level A",
+        //             "value": "SIAP.Complaint.Level.A"
+        //         },
+        //         {
+        //             "title": "Level B",
+        //             "value": "SIAP.Complaint.Level.B"
+        //         },
+        //         {
+        //             "title": "Level C",
+        //             "value": "SIAP.Complaint.Level.C"
+        //         },
+        //         {
+        //             "title": "Level D",
+        //             "value": "SIAP.Complaint.Level.D"
+        //         },
+        //         {
+        //             "title": "Level E",
+        //             "value": "SIAP.Complaint.Level.E"
+        //         }
+        //     ]
+        // }
+
         $Array = collect([
             [
                 "group" => [
