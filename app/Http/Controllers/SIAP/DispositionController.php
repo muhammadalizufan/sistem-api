@@ -144,7 +144,7 @@ class DispositionController extends Controller
         });
         $I = $I->where("ref_type", "Disposition")->where("forward_to", $r->UserData->id);
         if (!is_null($id)) {
-            $Payload = $I->where('id', $id)->first();
+            $Payload = $I->where('ref_id', $id)->first();
             if (is_object($Payload)) {
                 $Payload = $Payload->toArray();
                 $FID = Inbox::select("forward_to")->where([
@@ -255,7 +255,9 @@ class DispositionController extends Controller
     {
         try {
             ValidatorManager::ValidateJSON($r, self::AddEditNewLetterRule());
-            if (!$this->SIAPRepository->AddNewLetter($r)) {
+            $res = $this->SIAPRepository->AddNewLetter($r);
+            $check = is_bool($res);
+            if ($check) {
                 throw new \App\Exceptions\FailedAddEditGlobalException("failed add new letter", 400);
             }
         } catch (\ValidateException $e) {
@@ -264,6 +266,9 @@ class DispositionController extends Controller
         return response([
             "api_version" => "1.0",
             "message" => "success add new letter",
+            "data" => [
+                "id" => $check["id"],
+            ],
         ], 201);
     }
 
@@ -281,6 +286,9 @@ class DispositionController extends Controller
         return response([
             "api_version" => "1.0",
             "message" => "success edit a letter",
+            "data" => [
+                "id" => $id,
+            ],
         ], 200);
     }
 

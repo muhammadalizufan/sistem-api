@@ -184,7 +184,9 @@ trait DispositionRepository
             return false;
         }
 
-        return true;
+        return [
+            "id" => $IL->id,
+        ];
     }
 
     public function EditLetter(Request $r)
