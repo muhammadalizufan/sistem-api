@@ -221,7 +221,7 @@ class DispositionController extends Controller
                     "ref_type" => "Disposition",
                 ])->where(function ($q) {
                     $q->whereRaw("FIND_IN_SET('Receiver', `inboxs`.`user_type`) != 0");
-                })->first()->toArray();
+                })->first()->toArray() ?? [];
 
                 $Payload['receiver'] = [
                     'id' => $R['user']['id'] ?? null,
