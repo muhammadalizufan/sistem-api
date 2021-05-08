@@ -214,6 +214,21 @@ class DispositionController extends Controller
                         'role_name' => $i['user']['role']['role']['name'] ?? null,
                     ];
                 });
+
+                // Receiver
+                $R = Inbox::with(["User"])->where([
+                    "ref_id" => $Payload['ref_id'],
+                    "ref_type" => "Disposition",
+                ])->where(function ($q) {
+                    $q->whereRaw("FIND_IN_SET('Receiver', `inboxs`.`user_type`) != 0");
+                })->first()->toArray();
+
+                $Payload['receiver'] = [
+                    'id' => $R['user']['id'] ?? null,
+                    'user_name' => $R['user']['name'] ?? null,
+                    'role_name' => $R['user']['role']['role']['name'] ?? null,
+                ];
+
             }
             return response($Payload, 200);
         }
