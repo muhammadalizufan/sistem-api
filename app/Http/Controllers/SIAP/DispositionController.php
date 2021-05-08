@@ -219,16 +219,13 @@ class DispositionController extends Controller
                 $R = Inbox::with(["User"])->where([
                     "ref_id" => $Payload['ref_id'],
                     "ref_type" => "Disposition",
-                ])->where(function ($q) {
-                    $q->whereRaw("FIND_IN_SET('Receiver', `inboxs`.`user_type`) != 0");
-                })->first()->toArray() ?? [];
+                ])->where("user_type", "LIKE", "%Receiver%")->first();
 
                 $Payload['receiver'] = [
                     'id' => $R['user']['id'] ?? null,
                     'user_name' => $R['user']['name'] ?? null,
                     'role_name' => $R['user']['role']['role']['name'] ?? null,
                 ];
-
             }
             return response($Payload, 200);
         }
