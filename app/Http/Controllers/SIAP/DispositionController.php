@@ -236,7 +236,7 @@ class DispositionController extends Controller
         return [
             'title' => 'required|string',
             'from' => 'required|string',
-            'dateline' => ($isEdit ? 'nullable' : 'required|') . 'string|in:OneDay,TwoDay,ThreeDay',
+            'dateline' => ($isEdit ? '' : 'required|') . 'string|in:OneDay,TwoDay,ThreeDay',
             'cat_name' => 'required|string',
             'file' => 'required|min:1|array',
             'file.*' => 'required',

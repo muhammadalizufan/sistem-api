@@ -27,7 +27,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->call(function () {
-            IncomingLetter::where('dateline', '<', Carbon::now())->update([
+            IncomingLetter::where('dateline', '<', Carbon::now())->where('status', 0)->update([
                 'status' => 2,
             ]);
         })->everyMinute();
