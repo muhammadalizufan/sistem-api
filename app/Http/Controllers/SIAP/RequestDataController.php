@@ -45,7 +45,17 @@ class RequestDataController extends Controller
         $I = $I->where("ref_type", "RequestData")->where("forward_to", $r->UserData->id);
 
         if (is_null($id)) {
-            return $I->paginate($r->input('limit', 10));
+            $Payload = collect($I->paginate($r->input('limit', 10)))->toArray();
+            $Payload['data'] = collect($Payload['data'])->map(function ($i) {
+                $i['user'] = [
+                    'id' => $i['user']['id'],
+                    'name' => $i['user']['name'],
+                    'role_id' => $i['user']['role']['role']['id'],
+                    'role_name' => $i['user']['role']['role']['name'],
+                ];
+                return $i;
+            });
+            return $Payload;
         }
         $Payload = $I->where('id', $id)->first();
         if (is_object($Payload)) {
