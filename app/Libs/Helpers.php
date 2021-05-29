@@ -195,4 +195,16 @@ class Helpers
         $body = $dom->saveHTML($dom->getElementsByTagName('body')->item(0));
         return str_replace(array('<body>', '</body>'), '', $body);
     }
+    /**
+     * Count Days Between.
+     *
+     * @return static @int
+     */
+    public static function CountDaysBetween(string $startDate = "", string $endDate = ""): int
+    {
+        // diff time and 86400 seconds in one day
+        $numberDays = abs(strtotime($endDate) - strtotime($startDate)) / 86400;
+        // convert to integer
+        return intval($numberDays);
+    }
 }
