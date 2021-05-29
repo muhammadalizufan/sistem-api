@@ -112,10 +112,8 @@ class IncomingLetter extends Model
                 return "Process";
                 break;
             case 1:
-                return "Success";
+                return "Done";
                 break;
-            case 2:
-                return "Failed";
                 break;
             default:
                 return null;

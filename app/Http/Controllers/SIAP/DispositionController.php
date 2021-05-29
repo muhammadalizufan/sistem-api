@@ -2,6 +2,7 @@
 namespace App\Http\Controllers\SIAP;
 
 use App\Http\Controllers\Controller;
+use App\Libs\Helpers;
 use App\Models\Account\Permission;
 use App\Models\Account\UserPermission;
 use App\Models\SIAP\Comment;
@@ -162,6 +163,16 @@ class DispositionController extends Controller
                     return $i['file'];
                 })->toArray();
 
+                $Payload['disposition']['date_status'] = 'normal';
+                if (
+                    ($Payload['disposition']['status'] ?? 0) == 0
+                    && $Payload['disposition']['date'] ?? '' != ''
+                    && $Payload['disposition']['dateline'] ?? '' != ''
+                ) {
+                    $Days = Helpers::CountDaysBetween($Payload['disposition']['date'], $Payload['disposition']['dateline']);
+                    $Payload['disposition']['date_status'] = ($Days >= 2 ? 'normal' : ($Days == 0 ? 'danger' : 'warning'));
+                }
+
                 // User
                 $Payload['user'] = [
                     'id' => $Payload['user']['id'],
@@ -232,6 +243,15 @@ class DispositionController extends Controller
         $I = $I->orderBy('id', 'DESC');
         $Payload = collect($I->paginate($r->input('limit', 10)))->toArray();
         $Payload['data'] = collect($Payload['data'])->map(function ($i) {
+            $i['disposition']['date_status'] = 'normal';
+            if (
+                ($i['disposition']['status'] ?? 0) == 0
+                && $i['disposition']['date'] ?? '' != ''
+                && $i['disposition']['dateline'] ?? '' != ''
+            ) {
+                $Days = Helpers::CountDaysBetween($i['disposition']['date'], $i['disposition']['dateline']);
+                $i['disposition']['date_status'] = ($Days >= 2 ? 'normal' : ($Days == 0 ? 'danger' : 'warning'));
+            }
             $i['user'] = [
                 'id' => $i['user']['id'],
                 'name' => $i['user']['name'],

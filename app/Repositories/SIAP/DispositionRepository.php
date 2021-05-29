@@ -224,7 +224,6 @@ trait DispositionRepository
                 'title',
                 'from',
                 'desc',
-                // 'dateline',
                 'note',
                 'private',
             ]), [
